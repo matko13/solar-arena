@@ -145,24 +145,80 @@ def fetch_ha_data(target_date: date) -> dict:
 # ---------------------------------------------------------------------------
 
 def fusionsolar_login(session, base_url, username, password):
-    """Login via SSO - regular user account."""
-    r = session.post(
-        f"{base_url}/unisso/v2/validateUser.action",
-        json={"organizationName": "", "username": username, "password": password},
-        timeout=15,
-    )
-    r.raise_for_status()
-    data = r.json()
-    if data.get("errorCode"):
-        raise Exception(f"FusionSolar login failed: {data.get('errorMsg', data)}")
+    """Login via SSO - regular user account. Uses form-encoded data."""
+    # Metoda 1: JSON body (nowsze API)
+    try:
+        r = session.post(
+            f"{base_url}/unisso/v3/validateUser.action",
+            json={"organizationName": "", "username": username, "password": password},
+            headers={"Content-Type": "application/json"},
+            timeout=15,
+            allow_redirects=False,
+        )
+        if r.status_code == 200 and r.headers.get("content-type", "").startswith("application/json"):
+            data = r.json()
+            if not data.get("errorCode"):
+                redirect_url = data.get("redirectURL") or data.get("redirectUrl")
+                if redirect_url:
+                    session.get(redirect_url, timeout=15, allow_redirects=True)
+                xsrf = session.cookies.get("XSRF-TOKEN")
+                if xsrf:
+                    session.headers.update({"XSRF-TOKEN": xsrf})
+                print("FusionSolar: logged in via v3 JSON")
+                return
+    except Exception as e:
+        print(f"FusionSolar v3 JSON login failed: {e}")
 
-    redirect_url = data.get("redirectURL") or data.get("redirectUrl")
-    if redirect_url:
-        session.get(redirect_url, timeout=15, allow_redirects=True)
+    # Metoda 2: Form-encoded (starsze API / niektóre regiony)
+    try:
+        r = session.post(
+            f"{base_url}/unisso/v2/validateUser.action",
+            data={"organizationName": "", "username": username, "password": password},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=15,
+            allow_redirects=False,
+        )
+        if r.status_code == 200:
+            try:
+                data = r.json()
+                if data.get("errorCode"):
+                    raise Exception(f"Login rejected: {data.get('errorMsg', data)}")
+                redirect_url = data.get("redirectURL") or data.get("redirectUrl")
+                if redirect_url:
+                    session.get(redirect_url, timeout=15, allow_redirects=True)
+            except ValueError:
+                # Response is not JSON - might be a redirect page
+                if r.headers.get("Location"):
+                    session.get(r.headers["Location"], timeout=15, allow_redirects=True)
+        elif r.status_code in (301, 302, 303):
+            session.get(r.headers.get("Location", ""), timeout=15, allow_redirects=True)
 
-    xsrf = session.cookies.get("XSRF-TOKEN")
-    if xsrf:
-        session.headers.update({"XSRF-TOKEN": xsrf})
+        xsrf = session.cookies.get("XSRF-TOKEN")
+        if xsrf:
+            session.headers.update({"XSRF-TOKEN": xsrf})
+            print("FusionSolar: logged in via v2 form")
+            return
+    except Exception as e:
+        print(f"FusionSolar v2 form login failed: {e}")
+
+    # Metoda 3: Bezpośredni POST z user.name / user.password (legacy)
+    try:
+        r = session.post(
+            f"{base_url}/unisso/v2/validateUser.action",
+            data={"user.name": username, "user.password": password},
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=15,
+            allow_redirects=True,
+        )
+        xsrf = session.cookies.get("XSRF-TOKEN")
+        if xsrf:
+            session.headers.update({"XSRF-TOKEN": xsrf})
+            print("FusionSolar: logged in via legacy form")
+            return
+    except Exception as e:
+        print(f"FusionSolar legacy login failed: {e}")
+
+    raise Exception("All FusionSolar login methods failed")
 
 
 def fetch_fusionsolar_data(target_date: date) -> dict:
