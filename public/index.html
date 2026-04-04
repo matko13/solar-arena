@@ -7,97 +7,97 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0a;--c:rgba(255,255,255,0.03);--b:rgba(255,255,255,0.06);--d:rgba(255,255,255,0.4);--m:#22d3ee;--md:rgba(34,211,238,0.15);--z:#f59e0b;--zd:rgba(245,158,11,0.15);--f:'JetBrains Mono',monospace}
-body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh}
-.wrap{max-width:520px;margin:0 auto;padding:0 16px 40px}
-h1{text-align:center;padding:28px 0 4px;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--m),var(--z));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sub{text-align:center;font-size:11px;color:var(--d);font-family:var(--f);margin-bottom:16px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.card{border-radius:14px;padding:16px;border:1px solid var(--b);background:var(--c);position:relative}
-.card.win{border-color:rgba(255,255,255,0.15)}
-.card .crown{position:absolute;top:6px;right:10px;font-size:24px}
-.card .name{font-weight:800;font-size:16px;margin-bottom:2px}
-.card .info{font-size:10px;color:var(--d)}
-.card .score{font-size:32px;font-weight:900;font-family:var(--f);margin-top:8px}
-.card .slbl{font-size:9px;color:var(--d);text-transform:uppercase;letter-spacing:1px}
-.tabs{display:flex;gap:4px;margin:12px 0;background:var(--c);border-radius:10px;padding:3px}
-.tab{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;background:0;color:rgba(255,255,255,0.35);font-size:12px;font-weight:700;font-family:inherit}
-.tab.on{background:rgba(255,255,255,0.1);color:#fff}
-.nav{display:flex;align-items:center;justify-content:center;gap:14px;margin:12px 0}
-.nav button{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;cursor:pointer;font-size:12px}
+:root{--bg:#0a0a0a;--c:rgba(255,255,255,.03);--b:rgba(255,255,255,.06);--d:rgba(255,255,255,.4);--m:#22d3ee;--md:rgba(34,211,238,.15);--z:#f59e0b;--zd:rgba(245,158,11,.15);--f:'JetBrains Mono',monospace}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif}
+.w{max-width:500px;margin:0 auto;padding:0 16px 40px}
+h1{text-align:center;padding:24px 0 2px;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--m),var(--z));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{text-align:center;font-size:11px;color:var(--d);font-family:var(--f);margin-bottom:14px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.cd{border-radius:14px;padding:16px;border:1px solid var(--b);background:var(--c);position:relative}
+.cd.w2{border-color:rgba(255,255,255,.15)}
+.cd .cr{position:absolute;top:6px;right:10px;font-size:22px}
+.cd .n{font-weight:800;font-size:16px}.cd .i{font-size:10px;color:var(--d)}
+.cd .s{font-size:30px;font-weight:900;font-family:var(--f);margin-top:6px}
+.cd .sl{font-size:9px;color:var(--d);text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;gap:3px;margin:10px 0;background:var(--c);border-radius:10px;padding:3px}
+.t{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;background:0;color:rgba(255,255,255,.35);font-size:12px;font-weight:700;font-family:inherit}
+.t.on{background:rgba(255,255,255,.1);color:#fff}
+.nav{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0}
+.nav button{width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;font-size:12px}
 .nav button:disabled{opacity:.3}
-.nav .dt{font-size:18px;font-weight:800;font-family:var(--f)}
+.nav .dt{font-size:17px;font-weight:800;font-family:var(--f)}
 .nav .wd{font-size:10px;color:var(--d);text-align:center}
-.duel{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:12px 14px}
-.met{padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
-.met:last-child{border-bottom:0}
-.met .lbl{text-align:center;font-size:12px;color:var(--d);font-weight:600;margin-bottom:6px}
-.met .badge{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:6px}
-.bars{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.dl{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:14px}
+.bar{margin-bottom:14px}
+.bar .lbl{font-size:12px;color:var(--d);font-weight:600;margin-bottom:6px;text-align:center}
+.bar .badge{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:6px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:4px}
 .br{display:flex;align-items:center;gap:6px}
 .br.r{flex-direction:row-reverse}
-.bv{font-family:var(--f);font-size:12px;font-weight:700;min-width:60px}
+.bv{font-family:var(--f);font-size:12px;font-weight:700;min-width:55px}
 .br.r .bv{text-align:left}.br:not(.r) .bv{text-align:right}
-.bt{flex:1;height:18px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden;position:relative}
+.bt{flex:1;height:18px;background:rgba(255,255,255,.04);border-radius:3px;overflow:hidden;position:relative}
 .bf{position:absolute;top:0;bottom:0;border-radius:3px;transition:width .5s ease}
-.winner{text-align:center;padding:12px 0 6px;font-size:16px;font-weight:900}
+.win{text-align:center;padding:14px 0 4px;font-size:18px;font-weight:900}
 .empty{text-align:center;padding:30px;color:var(--d);font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
-th{padding:6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);color:var(--d);font-size:9px;text-transform:uppercase;letter-spacing:1px}
-td{padding:6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.03);color:rgba(255,255,255,0.5);font-family:var(--f)}
-.foot{text-align:center;margin-top:20px;font-size:9px;color:rgba(255,255,255,0.12);font-family:var(--f)}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:6px}
+th{padding:5px;border-bottom:1px solid rgba(255,255,255,.1);color:var(--d);font-size:9px;text-transform:uppercase;letter-spacing:1px}
+td{padding:5px;text-align:center;border-bottom:1px solid rgba(255,255,255,.03);color:rgba(255,255,255,.5);font-family:var(--f)}
+.ft{text-align:center;margin-top:16px;font-size:9px;color:rgba(255,255,255,.1);font-family:var(--f)}
 </style>
 </head>
 <body>
 <h1>SOLAR ARENA</h1>
-<div class="wrap">
+<div class="w">
 <div class="sub" id="sub"></div>
-<div class="row" id="scores"></div>
-<div class="tabs">
-<button class="tab on" onclick="tab('b')">Bitwa</button>
-<button class="tab" onclick="tab('r')">Ranking</button>
-</div>
-<div id="vb">
-<div class="nav"><button onclick="go(-1)">&lt;</button><div><div class="dt" id="nd"></div><div class="wd" id="nw"></div></div><button id="nn" onclick="go(1)">&gt;</button></div>
-<div id="duel"></div>
-</div>
+<div class="g" id="sc"></div>
+<div class="tabs"><button class="t on" onclick="tb('b')">Bitwa</button><button class="t" onclick="tb('r')">Ranking</button></div>
+<div id="vb"><div class="nav"><button onclick="go(-1)">&lt;</button><div><div class="dt" id="nd"></div><div class="wd" id="nw"></div></div><button id="nn" onclick="go(1)">&gt;</button></div><div id="dl"></div></div>
 <div id="vr" style="display:none"></div>
-<div class="foot">Solar Arena v7 &middot; Kiosk API &middot; DEYE vs Huawei</div>
+<div class="ft">Solar Arena v7 · DEYE vs Huawei · produkcja/kWp</div>
 </div>
 <script>
-var D={},C={matkoKwp:7.95,sasiadKwp:6.16},cd=new Date().toISOString().split('T')[0];
-async function load(){try{var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config)C=j.config;render();}catch(e){console.error(e);}}
-function render(){document.getElementById('sub').textContent='DEYE '+C.matkoKwp+'kWp vs Huawei '+C.sasiadKwp+'kWp';scores();nav();duel();hist();}
-function scores(){var ds=Object.keys(D).sort(),ms=0,zs=0;ds.forEach(function(d){var m=D[d]&&D[d].matko,s=D[d]&&D[d].sasiad;if(!m||!s)return;var mn=m.production/C.matkoKwp,sn=s.production/C.sasiadKwp;if(mn>sn)ms+=3;else if(sn>mn)zs+=3;else{ms++;zs++;}});var ml=ms>=zs;document.getElementById('scores').innerHTML=sc('Matko','DEYE',C.matkoKwp,ms,ml,'var(--m)','var(--md)')+sc('Zocho','Huawei',C.sasiadKwp,zs,!ml,'var(--z)','var(--zd)');}
-function sc(n,inv,kwp,pts,w,col,bg){return'<div class="card'+(w?' win':'')+'" style="'+(w?'background:linear-gradient(135deg,'+bg+',rgba(0,0,0,.3));border-color:'+col+'33':'')+'">'+(w?'<div class="crown">👑</div>':'')+'<div class="name">'+n+'</div><div class="info">'+inv+' · '+kwp+' kWp</div><div class="score" style="color:'+col+'">'+pts+'</div><div class="slbl">punkty</div></div>';}
-function tab(t){document.getElementById('vb').style.display=t==='b'?'':'none';document.getElementById('vr').style.display=t==='r'?'':'none';document.querySelectorAll('.tab').forEach(function(b,i){b.className='tab'+((i===0&&t==='b')||(i===1&&t==='r')?' on':'');});}
-function nav(){var d=new Date(cd+'T12:00:00');document.getElementById('nd').textContent=cd;document.getElementById('nw').textContent=d.toLocaleDateString('pl-PL',{weekday:'long'});document.getElementById('nn').disabled=cd===new Date().toISOString().split('T')[0];}
-function go(n){var d=new Date(cd+'T12:00:00');d.setDate(d.getDate()+n);var t=new Date().toISOString().split('T')[0];var nd=d.toISOString().split('T')[0];if(nd<=t){cd=nd;nav();duel();}}
-function duel(){var day=D[cd],el=document.getElementById('duel');if(!day||(!day.matko&&!day.sasiad)){el.innerHTML='<div class="empty">Brak danych na '+cd+'</div>';return;}
-var m=day.matko||{production:0,consumption:0,export:0,selfConsumption:0};var s=day.sasiad||{production:0,consumption:0,export:0,selfConsumption:0};
-var mn=m.production/C.matkoKwp,sn=s.production/C.sasiadKwp;var w=mn>sn?'Matko':sn>mn?'Zocho':'Remis';
-var h='<div class="duel">';
-h+=metric('Produkcja PV','kWh',m.production,s.production,true);
-if(m.consumption>0||s.consumption>0)h+=metric('Zuzycie','kWh',m.consumption,s.consumption,false);
-if(m.export>0||s.export>0)h+=metric('Eksport','kWh',m.export,s.export,true);
-h+=metric('Produkcja/kWp','kWh/kWp',mn,sn,true);
-h+='<div class="winner" style="color:'+(w==='Matko'?'var(--m)':w==='Zocho'?'var(--z)':'var(--d)')+'">🏆 '+w+(w!=='Remis'?' WYGRYWA!':'')+'</div></div>';
-el.innerHTML=h;}
-function metric(label,unit,mv,sv,hw){var mx=Math.max(mv,sv,0.01);var mp=Math.min(mv/mx*100,100);var sp=Math.min(sv/mx*100,100);
-var mw=hw?mv>sv:mv<sv;var sw=hw?sv>mv:sv<mv;var diff=Math.abs(mv-sv).toFixed(1);
-var badge='';if(mw)badge='<span class="badge" style="background:var(--md);color:var(--m)">+'+diff+'</span>';
-else if(sw)badge='<span class="badge" style="background:var(--zd);color:var(--z)">+'+diff+'</span>';
-return'<div class="met"><div class="lbl">'+label+badge+'</div><div class="bars">'+
-'<div class="br r"><span class="bv" style="color:var(--m)">'+mv.toFixed(1)+' '+unit+'</span><div class="bt"><div class="bf" style="right:0;width:'+mp+'%;background:linear-gradient(270deg,var(--m),transparent)"></div></div></div>'+
-'<div class="br"><span class="bv" style="color:var(--z)">'+sv.toFixed(1)+' '+unit+'</span><div class="bt"><div class="bf" style="left:0;width:'+sp+'%;background:linear-gradient(90deg,var(--z),transparent)"></div></div></div></div></div>';}
-function hist(){var el=document.getElementById('vr');var ds=Object.keys(D).sort().reverse().slice(0,30);if(!ds.length){el.innerHTML='<div class="empty">Brak danych</div>';return;}
-var h='<table><thead><tr><th>Data</th><th style="color:var(--m)">Matko</th><th style="color:var(--z)">Zocho</th><th>kWh/kWp</th><th></th></tr></thead><tbody>';
-ds.forEach(function(d){var m=D[d]&&D[d].matko,s=D[d]&&D[d].sasiad;var mp=m?m.production:0,sp=s?s.production:0;
-var mn=C.matkoKwp?mp/C.matkoKwp:0,sn=C.sasiadKwp?sp/C.sasiadKwp:0;
-var w=mn>sn?'⚡':sn>mn?'☀️':'🤝';
-h+='<tr><td>'+d.slice(5)+'</td><td style="color:var(--m)">'+mp.toFixed(1)+'</td><td style="color:var(--z)">'+sp.toFixed(1)+'</td><td>'+mn.toFixed(2)+' vs '+sn.toFixed(2)+'</td><td>'+w+'</td></tr>';});
+var D={},MK=7.95,ZK=6.16,cd=new Date().toISOString().split('T')[0];
+async function ld(){try{var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config){MK=j.config.matkoKwp||7.95;ZK=j.config.sasiadKwp||6.16;}re();}catch(e){}}
+function re(){document.getElementById('sub').textContent='DEYE '+MK+'kWp vs Huawei '+ZK+'kWp · produkcja/kWp';sc();nv();du();hi();}
+function p(d){return d&&d.matko?d.matko.production||0:0;}
+function z(d){return d&&d.sasiad?d.sasiad.production||0:0;}
+function sc(){var ds=Object.keys(D).sort(),ms=0,zs=0,mk=0,zk=0,lw=null,cs=0;
+ds.forEach(function(d){var mp=p(D[d]),zp=z(D[d]);if(!mp&&!zp)return;var mn=mp/MK,zn=zp/ZK;
+if(mn>zn){ms+=3;}else if(zn>mn){zs+=3;}else{ms++;zs++;}
+var w=mn>zn?'m':zn>mn?'z':null;if(w===lw)cs++;else{cs=1;lw=w;}});
+if(lw==='m')mk=cs;if(lw==='z')zk=cs;var ml=ms>=zs;
+document.getElementById('sc').innerHTML=
+scd('Matko','DEYE',MK,ms,mk,ml,'var(--m)','var(--md)')+
+scd('Zocho','Huawei',ZK,zs,zk,!ml,'var(--z)','var(--zd)');}
+function scd(n,inv,kw,pts,str,w,c,bg){return'<div class="cd'+(w?' w2':'')+'" style="'+(w?'background:linear-gradient(135deg,'+bg+',rgba(0,0,0,.3));border-color:'+c+'33':'')+'">'+(w?'<div class="cr">👑</div>':'')+'<div class="n">'+n+'</div><div class="i">'+inv+' · '+kw+' kWp</div><div class="s" style="color:'+c+'">'+pts+'</div><div class="sl">punkty'+(str>1?' · '+str+(str>2?'🔥':'')+' streak':'')+'</div></div>';}
+function tb(t){document.getElementById('vb').style.display=t==='b'?'':'none';document.getElementById('vr').style.display=t==='r'?'':'none';document.querySelectorAll('.t').forEach(function(b,i){b.className='t'+((i===0&&t==='b')||(i===1&&t==='r')?' on':'');});}
+function nv(){var d=new Date(cd+'T12:00:00');document.getElementById('nd').textContent=cd;document.getElementById('nw').textContent=d.toLocaleDateString('pl-PL',{weekday:'long'});document.getElementById('nn').disabled=cd===new Date().toISOString().split('T')[0];}
+function go(n){var d=new Date(cd+'T12:00:00');d.setDate(d.getDate()+n);var nd=d.toISOString().split('T')[0];if(nd<=new Date().toISOString().split('T')[0]){cd=nd;nv();du();}}
+function du(){var day=D[cd],el=document.getElementById('dl');
+if(!day){el.innerHTML='<div class="empty">Brak danych na '+cd+'</div>';return;}
+var mp=p(day),zp=z(day),mn=mp/MK,zn=zp/ZK;
+var mx1=Math.max(mp,zp,.01),mx2=Math.max(mn,zn,.01);
+var w=mn>zn?'Matko':zn>mn?'Zocho':'Remis';
+var wc=w==='Matko'?'var(--m)':w==='Zocho'?'var(--z)':'var(--d)';
+el.innerHTML='<div class="dl">'+
+bar('Produkcja PV','kWh',mp,zp,mx1,true)+
+bar('Produkcja / kWp','kWh/kWp',mn,zn,mx2,true)+
+'<div class="win" style="color:'+wc+'">🏆 '+w+(w!=='Remis'?' WYGRYWA!':'')+'</div></div>';}
+function bar(l,u,mv,sv,mx,hw){var mp2=mv/mx*100,sp2=sv/mx*100;
+var mw=hw?mv>sv:mv<sv,sw=hw?sv>mv:sv<mv,df=Math.abs(mv-sv).toFixed(1);
+var bg='';if(mw)bg='<span class="badge" style="background:var(--md);color:var(--m)">+'+df+'</span>';
+else if(sw)bg='<span class="badge" style="background:var(--zd);color:var(--z)">+'+df+'</span>';
+return'<div class="bar"><div class="lbl">'+l+bg+'</div><div class="row">'+
+'<div class="br r"><span class="bv" style="color:var(--m)">'+mv.toFixed(2)+' '+u+'</span><div class="bt"><div class="bf" style="right:0;width:'+mp2+'%;background:linear-gradient(270deg,var(--m),transparent)"></div></div></div>'+
+'<div class="br"><span class="bv" style="color:var(--z)">'+sv.toFixed(2)+' '+u+'</span><div class="bt"><div class="bf" style="left:0;width:'+sp2+'%;background:linear-gradient(90deg,var(--z),transparent)"></div></div></div></div></div>';}
+function hi(){var el=document.getElementById('vr');var ds=Object.keys(D).sort().reverse().slice(0,30);
+if(!ds.length){el.innerHTML='<div class="empty">Brak danych</div>';return;}
+var h='<table><thead><tr><th>Data</th><th style="color:var(--m)">Matko kWh</th><th style="color:var(--z)">Zocho kWh</th><th>kWh/kWp</th><th></th></tr></thead><tbody>';
+ds.forEach(function(d){var mp=p(D[d]),zp=z(D[d]),mn=mp/MK,zn=zp/ZK;
+h+='<tr><td>'+d.slice(5)+'</td><td style="color:var(--m)">'+mp.toFixed(1)+'</td><td style="color:var(--z)">'+zp.toFixed(1)+'</td><td>'+mn.toFixed(2)+' vs '+zn.toFixed(2)+'</td><td>'+(mn>zn?'⚡':zn>mn?'☀️':'🤝')+'</td></tr>';});
 h+='</tbody></table>';el.innerHTML=h;}
-load();setInterval(load,300000);
+ld();setInterval(ld,300000);
 </script>
 </body>
 </html>
