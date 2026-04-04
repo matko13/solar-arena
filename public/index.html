@@ -147,8 +147,8 @@ function calcStats() {
     METRICS.forEach(met => {
       const mV = config.normalize && met.unit!=='%' ? (m[met.key]||0)/config.matkoKwp : (m[met.key]||0);
       const sV = config.normalize && met.unit!=='%' ? (s[met.key]||0)/config.sasiadKwp : (s[met.key]||0);
-      if(met.higherWins ? mV>sV : mV<sV) mW++;
-      else if(met.higherWins ? sV>mV : sV<mV) sW++;
+      if((mV===0&&sV>0)||(sV===0&&mV>0)){} else if(met.higherWins ? mV>sV : mV<sV) mW++;
+      else if(met.higherWins ? sV>mV : sV<mV) sW++; /* skip 0 vs nonzero */
     });
     if(mW>sW) ms+=3; else if(sW>mW) zs+=3; else {ms+=1;zs+=1;}
     const w = mW>sW?'m':sW>mW?'z':null;
@@ -219,8 +219,8 @@ function renderDuel() {
     const mV=m[met.key]||0, sV=s[met.key]||0;
     const mN=config.normalize&&met.unit!=='%'?mV/config.matkoKwp:mV;
     const sN=config.normalize&&met.unit!=='%'?sV/config.sasiadKwp:sV;
-    const mWin=met.higherWins?mN>sN:mN<sN;
-    const sWin=met.higherWins?sN>mN:sN<mN;
+    const skip=(mV===0&&sV>0)||(sV===0&&mV>0);const mWin=skip?false:(met.higherWins?mN>sN:mN<sN);
+    const sWin=skip?false:(met.higherWins?sN>mN:sN<mN);
     if(mWin) mW++; if(sWin) sW++;
     const mx=Math.max(mV,sV,0.1);
     const mPct=Math.min(mV/mx*100,100);
