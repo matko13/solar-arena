@@ -1,7 +1,6 @@
 """
 Solar Arena - Data Collector (Vercel Serverless Function)
 Triggered daily by Vercel Cron at 23:55 CET.
-Also callable manually: GET /api/collect?date=2026-04-04
 """
 
 from http.server import BaseHTTPRequestHandler
@@ -12,85 +11,40 @@ import os
 import requests
 
 
-# ---------------------------------------------------------------------------
-# Config from environment variables (set in Vercel Dashboard)
-# ---------------------------------------------------------------------------
-
 def get_env(key, default=""):
     return os.environ.get(key, default)
-
-
-# ---------------------------------------------------------------------------
-# Data models
-# ---------------------------------------------------------------------------
 
 def empty_stats():
     return {"production": 0.0, "consumption": 0.0, "export": 0.0, "selfConsumption": 0.0}
 
 
-# ---------------------------------------------------------------------------
-# Upstash Redis storage
-# ---------------------------------------------------------------------------
-
 class Storage:
-    """Upstash Redis REST API client."""
-
     def __init__(self):
         self.url = get_env("KV_REST_API_URL")
         self.token = get_env("KV_REST_API_TOKEN")
 
-    def _req(self, *args):
-        r = requests.post(
-            f"{self.url}",
-            headers={"Authorization": f"Bearer {self.token}"},
-            json=list(args),
-            timeout=10,
-        )
-        r.raise_for_status()
-        return r.json().get("result")
-
-    def get_all_data(self) -> dict:
-        """Get all arena data."""
-        r = requests.post(
-            f"{self.url}",
-            headers={"Authorization": f"Bearer {self.token}"},
-            json=["GET", "solar_arena_data"],
-            timeout=10,
-        )
+    def get_all_data(self):
+        r = requests.post(self.url, headers={"Authorization": f"Bearer {self.token}"}, json=["GET", "solar_arena_data"], timeout=10)
         r.raise_for_status()
         result = r.json().get("result")
-        if result:
-            return json.loads(result)
-        return {}
+        return json.loads(result) if result else {}
 
-    def save_day(self, date_key: str, matko: dict, sasiad: dict):
-        """Save one day's data."""
+    def save_day(self, date_key, matko, sasiad):
         data = self.get_all_data()
         data[date_key] = {"matko": matko, "sasiad": sasiad}
-        r = requests.post(
-            f"{self.url}",
-            headers={"Authorization": f"Bearer {self.token}"},
-            json=["SET", "solar_arena_data", json.dumps(data)],
-            timeout=10,
-        )
+        r = requests.post(self.url, headers={"Authorization": f"Bearer {self.token}"}, json=["SET", "solar_arena_data", json.dumps(data)], timeout=10)
         r.raise_for_status()
         return data
 
 
-# ---------------------------------------------------------------------------
-# Home Assistant (Matko / DEYE)
-# ---------------------------------------------------------------------------
-
-def fetch_ha_data(target_date: date) -> dict:
-    """Fetch daily data from Home Assistant REST API."""
-    ha_url = get_env("HA_URL", "http://homeassistant.local:8123").rstrip("/")
+def fetch_ha_data(target_date):
+    ha_url = get_env("HA_URL").rstrip("/")
     ha_token = get_env("HA_TOKEN")
-
-    if not ha_token or ha_token == "TWOJ_HA_TOKEN":
+    if not ha_token:
+        print("HA_TOKEN not set")
         return empty_stats()
 
     headers = {"Authorization": f"Bearer {ha_token}", "Content-Type": "application/json"}
-
     sensors = {
         "production": get_env("HA_SENSOR_PRODUCTION", "sensor.inverter_today_production"),
         "consumption": get_env("HA_SENSOR_CONSUMPTION", "sensor.inverter_today_load_consumption"),
@@ -100,31 +54,13 @@ def fetch_ha_data(target_date: date) -> dict:
     raw = {}
     for field, entity_id in sensors.items():
         try:
-            if target_date == date.today():
-                r = requests.get(f"{ha_url}/api/states/{entity_id}", headers=headers, timeout=10)
-                r.raise_for_status()
-                state = r.json()
-                val = state.get("state", "0")
-                raw[field] = float(val) if val not in ("unavailable", "unknown", "") else 0.0
-            else:
-                start = datetime.combine(target_date, datetime.min.time()).isoformat()
-                end = datetime.combine(target_date + timedelta(days=1), datetime.min.time()).isoformat()
-                r = requests.get(
-                    f"{ha_url}/api/history/period/{start}",
-                    headers=headers,
-                    params={"filter_entity_id": entity_id, "end_time": end, "minimal_response": "true"},
-                    timeout=10,
-                )
-                r.raise_for_status()
-                history = r.json()
-                if history and history[0]:
-                    vals = [float(s["state"]) for s in history[0]
-                            if s.get("state") not in ("unavailable", "unknown", "")]
-                    raw[field] = max(vals) if vals else 0.0
-                else:
-                    raw[field] = 0.0
+            r = requests.get(f"{ha_url}/api/states/{entity_id}", headers=headers, timeout=10)
+            r.raise_for_status()
+            val = r.json().get("state", "0")
+            raw[field] = float(val) if val not in ("unavailable", "unknown", "") else 0.0
+            print(f"  HA {entity_id}: {raw[field]}")
         except Exception as e:
-            print(f"HA error {entity_id}: {e}")
+            print(f"  HA error {entity_id}: {e}")
             raw[field] = 0.0
 
     stats = {
@@ -140,215 +76,102 @@ def fetch_ha_data(target_date: date) -> dict:
     return stats
 
 
-# ---------------------------------------------------------------------------
-# Huawei FusionSolar (Żocho)
-# ---------------------------------------------------------------------------
-
-def fusionsolar_login(session, base_url, username, password):
-    """Login via SSO - regular user account. Uses form-encoded data."""
-    # Metoda 1: JSON body (nowsze API)
-    try:
-        r = session.post(
-            f"{base_url}/unisso/v3/validateUser.action",
-            json={"organizationName": "", "username": username, "password": password},
-            headers={"Content-Type": "application/json"},
-            timeout=15,
-            allow_redirects=False,
-        )
-        if r.status_code == 200 and r.headers.get("content-type", "").startswith("application/json"):
-            data = r.json()
-            if not data.get("errorCode"):
-                redirect_url = data.get("redirectURL") or data.get("redirectUrl")
-                if redirect_url:
-                    session.get(redirect_url, timeout=15, allow_redirects=True)
-                xsrf = session.cookies.get("XSRF-TOKEN")
-                if xsrf:
-                    session.headers.update({"XSRF-TOKEN": xsrf})
-                print("FusionSolar: logged in via v3 JSON")
-                return
-    except Exception as e:
-        print(f"FusionSolar v3 JSON login failed: {e}")
-
-    # Metoda 2: Form-encoded (starsze API / niektóre regiony)
-    try:
-        r = session.post(
-            f"{base_url}/unisso/v2/validateUser.action",
-            data={"organizationName": "", "username": username, "password": password},
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=15,
-            allow_redirects=False,
-        )
-        if r.status_code == 200:
-            try:
-                data = r.json()
-                if data.get("errorCode"):
-                    raise Exception(f"Login rejected: {data.get('errorMsg', data)}")
-                redirect_url = data.get("redirectURL") or data.get("redirectUrl")
-                if redirect_url:
-                    session.get(redirect_url, timeout=15, allow_redirects=True)
-            except ValueError:
-                # Response is not JSON - might be a redirect page
-                if r.headers.get("Location"):
-                    session.get(r.headers["Location"], timeout=15, allow_redirects=True)
-        elif r.status_code in (301, 302, 303):
-            session.get(r.headers.get("Location", ""), timeout=15, allow_redirects=True)
-
-        xsrf = session.cookies.get("XSRF-TOKEN")
-        if xsrf:
-            session.headers.update({"XSRF-TOKEN": xsrf})
-            print("FusionSolar: logged in via v2 form")
-            return
-    except Exception as e:
-        print(f"FusionSolar v2 form login failed: {e}")
-
-    # Metoda 3: Bezpośredni POST z user.name / user.password (legacy)
-    try:
-        r = session.post(
-            f"{base_url}/unisso/v2/validateUser.action",
-            data={"user.name": username, "user.password": password},
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-            timeout=15,
-            allow_redirects=True,
-        )
-        xsrf = session.cookies.get("XSRF-TOKEN")
-        if xsrf:
-            session.headers.update({"XSRF-TOKEN": xsrf})
-            print("FusionSolar: logged in via legacy form")
-            return
-    except Exception as e:
-        print(f"FusionSolar legacy login failed: {e}")
-
-    raise Exception("All FusionSolar login methods failed")
-
-
-def fetch_fusionsolar_data(target_date: date) -> dict:
-    """Fetch daily data from FusionSolar."""
-    base_url = get_env("FS_BASE_URL", "https://uni003eu5.fusionsolar.huawei.com")
+def fetch_fusionsolar_data(target_date):
     username = get_env("FS_USERNAME")
     password = get_env("FS_PASSWORD")
+    subdomain = get_env("FS_SUBDOMAIN", "uni003eu5")
 
     if not username or not password:
+        print("FS credentials not set")
         return empty_stats()
 
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        "Accept": "application/json",
-    })
-
-    try:
-        fusionsolar_login(session, base_url, username, password)
-    except Exception as e:
-        print(f"FusionSolar login error: {e}")
-        return empty_stats()
-
-    # Auto-detect station
-    station_code = get_env("FS_STATION_CODE", "")
-    if not station_code:
-        try:
-            r = session.post(f"{base_url}/rest/pvms/web/station/v1/station/station-list", json={
-                "curPage": 1, "pageSize": 10, "timeZone": 2, "sortId": "createTime", "sortDir": "DESC",
-            }, timeout=15)
-            r.raise_for_status()
-            data = r.json()
-            stations = data.get("data", {})
-            if isinstance(stations, dict):
-                station_list = stations.get("list", [])
-            else:
-                station_list = stations if isinstance(stations, list) else []
-            if station_list:
-                station_code = station_list[0].get("stationCode") or station_list[0].get("dn", "")
-                print(f"Auto-detected station: {station_code}")
-        except Exception as e:
-            print(f"Station list error: {e}")
-            return empty_stats()
-
-    if not station_code:
-        print("No station found")
-        return empty_stats()
-
-    collect_time = int(datetime.combine(target_date, datetime.min.time()).timestamp() * 1000)
     stats = empty_stats()
 
-    # Try multiple endpoints
-    endpoints = [
-        ("/rest/pvms/web/station/v1/overview/energy-balance", {"stationDn": station_code, "timeDim": 2, "queryTime": collect_time, "timeZone": 2}),
-        ("/rest/pvms/web/station/v1/overview/energy-flow", {"stationDn": station_code, "timeDim": 2, "queryTime": collect_time, "timeZone": 2}),
-    ]
+    try:
+        from fusion_solar_py.client import FusionSolarClient
 
-    for path, payload in endpoints:
+        print(f"FusionSolar: logging in as {username} on {subdomain}...")
+        client = FusionSolarClient(username, password, huawei_subdomain=subdomain)
+        print("FusionSolar: login OK")
+
+        # Get power status (includes today's production)
         try:
-            xsrf = session.cookies.get("XSRF-TOKEN")
-            if xsrf:
-                session.headers.update({"XSRF-TOKEN": xsrf})
-            r = session.post(f"{base_url}{path}", json=payload, timeout=15)
-            r.raise_for_status()
-            data = r.json()
-            if data.get("data"):
-                d = data["data"]
-                stats["production"] = round(float(d.get("productPower", d.get("inverter_power", 0))), 2)
-                stats["consumption"] = round(float(d.get("usePower", d.get("use_power", 0))), 2)
-                stats["export"] = round(float(d.get("ongridPower", d.get("ongrid_power", 0))), 2)
+            power = client.get_power_status()
+            print(f"FusionSolar power_status: {power}")
+            if power:
+                stats["production"] = round(float(getattr(power, 'total_current_day_energy_kwh', 0) or getattr(power, 'current_power_kw', 0)), 2)
                 if stats["production"] > 0:
-                    stats["selfConsumption"] = round(
-                        (stats["production"] - stats["export"]) / stats["production"] * 100, 1
-                    )
-                print(f"FusionSolar OK ({path}): prod={stats['production']}")
-                return stats
+                    stats["selfConsumption"] = 100.0
+                print(f"FusionSolar: production={stats['production']} kWh")
         except Exception as e:
-            print(f"FusionSolar {path} failed: {e}")
-            continue
+            print(f"FusionSolar power_status error: {e}")
+
+        # Try station KPIs for more detail
+        try:
+            stations = client.get_station_list()
+            print(f"FusionSolar stations: {len(stations) if stations else 0}")
+            if stations:
+                station_code = stations[0].get("stationCode", stations[0].get("dn", ""))
+                print(f"FusionSolar station_code: {station_code}")
+
+                kpi = client.get_station_real_kpi(station_code)
+                print(f"FusionSolar real_kpi raw: {kpi}")
+                if kpi:
+                    k = kpi[0] if isinstance(kpi, list) else kpi
+                    dp = k.get("dataItemMap", k) if isinstance(k, dict) else {}
+                    if dp:
+                        prod = float(dp.get("day_power", dp.get("inverter_power", dp.get("total_power", 0))))
+                        cons = float(dp.get("day_consumption", dp.get("use_power", 0)))
+                        exp = float(dp.get("day_ongrid_power", dp.get("ongrid_power", 0)))
+                        if prod > 0:
+                            stats["production"] = round(prod, 2)
+                        if cons > 0:
+                            stats["consumption"] = round(cons, 2)
+                        if exp > 0:
+                            stats["export"] = round(exp, 2)
+                        if stats["production"] > 0 and stats["export"] >= 0:
+                            stats["selfConsumption"] = round(
+                                (stats["production"] - stats["export"]) / stats["production"] * 100, 1
+                            )
+                        print(f"FusionSolar KPI: {stats}")
+        except Exception as e:
+            print(f"FusionSolar station KPI error: {e}")
+
+    except ImportError as e:
+        print(f"fusion_solar_py import error: {e}")
+    except Exception as e:
+        print(f"FusionSolar error: {e}")
 
     return stats
 
 
-# ---------------------------------------------------------------------------
-# Handler
-# ---------------------------------------------------------------------------
-
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            # Verify cron secret (optional - Vercel adds this header)
-            # auth = self.headers.get("Authorization")
-            # cron_secret = get_env("CRON_SECRET")
-
-            # Parse date from query string or use today
             query = parse_qs(urlparse(self.path).query)
             date_str = query.get("date", [None])[0]
-            if date_str:
-                target = date.fromisoformat(date_str)
-            else:
-                target = date.today()
-
+            target = date.fromisoformat(date_str) if date_str else date.today()
             date_key = target.isoformat()
             print(f"=== Collecting data for {date_key} ===")
 
-            # Collect from both sources
             matko = fetch_ha_data(target)
             print(f"Matko: {matko}")
 
             zocho = fetch_fusionsolar_data(target)
-            print(f"Żocho: {zocho}")
+            print(f"Zocho: {zocho}")
 
-            # Store
             storage = Storage()
             all_data = storage.save_day(date_key, matko, zocho)
 
-            # Determine winner
             matko_kwp = float(get_env("MATKO_KWP", "7.95"))
             zocho_kwp = float(get_env("ZOCHO_KWP", "6.16"))
             m_norm = matko["production"] / matko_kwp if matko_kwp > 0 else 0
             z_norm = zocho["production"] / zocho_kwp if zocho_kwp > 0 else 0
-            winner = "Matko" if m_norm > z_norm else "Żocho" if z_norm > m_norm else "Remis"
+            winner = "Matko" if m_norm > z_norm else "Zocho" if z_norm > m_norm else "Remis"
 
             result = {
-                "ok": True,
-                "date": date_key,
-                "matko": matko,
-                "zocho": zocho,
-                "winner": winner,
-                "total_days": len(all_data),
+                "ok": True, "date": date_key, "matko": matko, "zocho": zocho,
+                "winner": winner, "total_days": len(all_data),
             }
 
             self.send_response(200)
