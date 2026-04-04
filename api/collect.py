@@ -80,7 +80,11 @@ def fetch_fusionsolar_data(target_date):
 
         # Now use the logged-in session for REST API calls
         print("  Attempting REST API with authenticated session...")
-        session = client._session
+        session = getattr(client, '_session', None) or getattr(client, 'session', None)
+        if session is None:
+            print(f'  No session! attrs: {[a for a in dir(client) if not a.startswith("__")]}')
+            if stats['production'] > 0: stats['selfConsumption'] = 100.0
+            return stats
         base = f"https://{subdomain}.fusionsolar.huawei.com"
 
         # Refresh XSRF
