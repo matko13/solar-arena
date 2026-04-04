@@ -1,2 +1,1 @@
 requests==2.31.0
-fusion-solar-py==0.0.21
