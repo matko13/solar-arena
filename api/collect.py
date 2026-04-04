@@ -99,7 +99,7 @@ def fetch_fusionsolar_data(target_date):
             power = client.get_power_status()
             print(f"FusionSolar power_status: {power}")
             if power:
-                stats["production"] = round(float(getattr(power, 'total_current_day_energy_kwh', 0) or getattr(power, 'current_power_kw', 0)), 2)
+                stats["production"] = round(float(getattr(power, 'energy_today_kwh', 0)), 2)
                 if stats["production"] > 0:
                     stats["selfConsumption"] = 100.0
                 print(f"FusionSolar: production={stats['production']} kWh")
