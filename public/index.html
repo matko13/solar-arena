@@ -100,7 +100,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min
 <div class="fc">
 <h3>&#128221; Reczne wpisywanie danych</h3>
 <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:12px;text-align:center">Wpisz dane z aplikacji inwertera. Mozesz tez kliknac na 0.0 w zakladce Bitwa.</div>
-<div class="pb">
+<div style="margin-bottom:16px;padding:16px;border:2px dashed rgba(255,255,255,0.1);border-radius:12px;text-align:center;cursor:pointer" onclick="document.getElementById('screenshotInput').click()" id="dropZone"><div style="font-size:24px;margin-bottom:8px">📷</div><div style="font-size:13px;color:rgba(255,255,255,0.4)">Wrzuc screenshot z aplikacji inwertera</div><div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px">Claude Vision odczyta dane automatycznie</div><input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)"></div><div id="ocrPreview" style="display:none;margin-bottom:16px"><img id="ocrImg" style="width:100%;border-radius:8px;margin-bottom:8px"><div id="ocrStatus" style="text-align:center;font-size:13px;color:rgba(255,255,255,0.4)"></div></div><div class="pb">
 <button id="bm" onclick="setFP('matko')">&#9889; Matko</button>
 <button id="bz" onclick="setFP('sasiad')">&#9728;&#65039; Zocho</button>
 </div>
@@ -198,6 +198,35 @@ function setFP(p){fp=p;document.getElementById('bm').className='pb'+(p==='matko'
 function uFE(){const dv=document.getElementById('fd')?.value;if(!dv)return;const el=document.getElementById('fex');const day=D[dv];if(!day)return void(el.innerHTML='');let h='';if(day.matko?.production>0)h+=`<div style="padding:6px 10px;border-radius:8px;background:var(--matko-dim);color:var(--matko);font-size:12px;margin-bottom:4px">\u2713 Matko: ${day.matko.production}kWh prod, ${day.matko.consumption}kWh cons, ${day.matko.export}kWh exp</div>`;if(day.sasiad?.production>0)h+=`<div style="padding:6px 10px;border-radius:8px;background:var(--zocho-dim);color:var(--zocho);font-size:12px">\u2713 \u017bocho: ${day.sasiad.production}kWh prod, ${day.sasiad.consumption}kWh cons, ${day.sasiad.export}kWh exp</div>`;el.innerHTML=h;}
 async function submitForm(){const dv=document.getElementById('fd').value,pr=parseFloat(document.getElementById('fp').value)||0,co=parseFloat(document.getElementById('fc2').value)||0,ex=parseFloat(document.getElementById('fe').value)||0;if(!dv){toast('Wybierz date!',false);return;}if(pr===0&&co===0){toast('Wpisz przynajmniej produkcje!',false);return;}try{const r=await fetch('/api/manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player:fp,date:dv,production:pr,consumption:co,export:ex})});const j=await r.json();if(j.ok){toast(`\u2713 Zapisano ${fp==='matko'?'Matko':'\u017bocho'} ${dv}`,true);document.getElementById('fp').value='';document.getElementById('fc2').value='';document.getElementById('fe').value='';await fetchData();}else toast('Blad: '+j.error,false);}catch(e){toast('Blad: '+e,false);}}
 document.getElementById('fd')?.addEventListener('change',uFE);
+
+async function handleScreenshot(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    var b64 = e.target.result;
+    document.getElementById('ocrPreview').style.display = 'block';
+    document.getElementById('ocrImg').src = b64;
+    document.getElementById('ocrStatus').innerHTML = '⚡ Analizowanie screenshota...';
+    try {
+      var r = await fetch('/api/ocr', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({image: b64, media_type: file.type || 'image/png'})});
+      var j = await r.json();
+      if (j.ok) {
+        if (j.production > 0) document.getElementById('fp').value = j.production;
+        if (j.consumption > 0) document.getElementById('fc2').value = j.consumption;
+        if (j.export > 0) document.getElementById('fe').value = j.export;
+        document.getElementById('ocrStatus').innerHTML = '✅ Odczytano! Sprawdz wartosci i kliknij Zapisz.';
+      } else {
+        document.getElementById('ocrStatus').innerHTML = '❌ ' + j.error;
+      }
+    } catch(err) {
+      document.getElementById('ocrStatus').innerHTML = '❌ Blad: ' + err;
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
 fetchData();setInterval(fetchData,300000);
 setFP(urlMe==='zocho'?'sasiad':'matko');
 </script>
