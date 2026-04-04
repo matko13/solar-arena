@@ -80,7 +80,7 @@ def fetch_fusionsolar_data(target_date):
 
         # Now use the logged-in session for REST API calls
         print("  Attempting REST API with authenticated session...")
-        session = client.session
+        session = client._session
         base = f"https://{subdomain}.fusionsolar.huawei.com"
 
         # Refresh XSRF
