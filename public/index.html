@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solar Arena ⚡☀️</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0a;--card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--text:white;--dim:rgba(255,255,255,0.4);--matko:#22d3ee;--matko-dim:rgba(34,211,238,0.15);--zocho:#f59e0b;--zocho-dim:rgba(245,158,11,0.15);--mono:'JetBrains Mono',monospace}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
+.container{max-width:540px;margin:0 auto;padding:0 16px 40px}
+.header{text-align:center;padding:28px 16px 12px;position:relative}
+.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(34,211,238,0.08),transparent 60%);pointer-events:none}
+.header .sub{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.25);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.header h1{font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--matko),var(--zocho));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
+.header .meta{font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;font-family:var(--mono)}
+.scores{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
+.score-card{border-radius:16px;padding:20px 24px;position:relative;overflow:hidden;border:1px solid var(--border);background:var(--card)}
+.score-card.leader{border-color:rgba(255,255,255,0.15)}
+.score-card .crown{position:absolute;top:8px;right:12px;font-size:28px}
+.score-card .player{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.score-card .avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.score-card .name{font-weight:800;font-size:18px}
+.score-card .info{font-size:11px;color:var(--dim);font-weight:500;letter-spacing:0.5px}
+.score-card .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat-box{background:rgba(0,0,0,0.25);border-radius:10px;padding:10px 14px;text-align:center}
+.stat-box .val{font-size:26px;font-weight:900;font-family:var(--mono)}
+.stat-box .label{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border-radius:12px;padding:4px}
+.tab{flex:1;padding:10px 0;border-radius:10px;border:none;cursor:pointer;background:transparent;color:rgba(255,255,255,0.35);font-size:13px;font-weight:700;font-family:inherit;transition:all 0.2s}
+.tab.active{background:rgba(255,255,255,0.1);color:white}
+.day-nav{display:flex;align-items:center;justify-content:center;gap:16px;margin:16px 0}
+.day-nav button{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.day-nav button:disabled{opacity:0.3}
+.day-nav .date{font-size:20px;font-weight:800;font-family:var(--mono);text-align:center}
+.day-nav .weekday{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px}
+.duel-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px 16px}
+.metric{padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.metric:last-child{border-bottom:none}
+.metric .title{text-align:center;margin-bottom:10px}
+.metric .title span{font-size:14px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-weight:600}
+.metric .title .badge{margin-left:8px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700}
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-row.right{flex-direction:row-reverse}
+.bar-val{font-family:var(--mono);font-size:13px;font-weight:700;min-width:70px}
+.bar-row.right .bar-val{text-align:left}
+.bar-row:not(.right) .bar-val{text-align:right}
+.bar-track{flex:1;height:22px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;position:relative}
+.bar-fill{position:absolute;top:0;bottom:0;border-radius:4px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1)}
+.winner-banner{text-align:center;padding:16px 0 10px;font-size:18px;font-weight:900}
+.empty{text-align:center;padding:40px;color:rgba(255,255,255,0.3);font-size:14px}
+.history table{width:100%;border-collapse:collapse;font-size:12px}
+.history th{padding:8px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);color:var(--dim);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.history td{padding:8px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.6);font-family:var(--mono)}
+.history .section-title{font-size:14px;font-weight:700;color:var(--dim);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
+.total-info{text-align:center;font-size:11px;color:rgba(255,255,255,0.25);font-family:var(--mono)}
+.footer{text-align:center;margin-top:24px;font-size:10px;color:rgba(255,255,255,0.15);font-family:var(--mono)}
+.loading{display:flex;align-items:center;justify-content:center;min-height:60vh;font-family:var(--mono);color:var(--dim)}
+.refresh-btn{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.8);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);z-index:100}
+.refresh-btn:hover{background:rgba(255,255,255,0.1)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="sub">PV Battle Dashboard</div>
+  <h1>SOLAR ARENA</h1>
+  <div class="meta" id="header-meta">Ładowanie...</div>
+</div>
+
+<div class="container">
+  <div class="scores" id="scores"></div>
+  <div class="total-info" id="total-info"></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="setTab('battle')">⚔️ Bitwa</button>
+    <button class="tab" onclick="setTab('ranking')">🏆 Ranking</button>
+  </div>
+
+  <div id="battle-tab">
+    <div class="day-nav">
+      <button onclick="shiftDay(-1)">◀</button>
+      <div>
+        <div class="date" id="nav-date"></div>
+        <div class="weekday" id="nav-weekday"></div>
+      </div>
+      <button id="nav-next" onclick="shiftDay(1)">▶</button>
+    </div>
+    <div id="duel-content"></div>
+  </div>
+
+  <div id="ranking-tab" style="display:none"></div>
+
+  <div class="footer">Solar Arena v2.0 · Vercel + Upstash · DEYE vs Huawei</div>
+</div>
+
+<button class="refresh-btn" onclick="fetchData()" title="Odśwież dane">🔄</button>
+
+<script>
+const METRICS = [
+  {key:'production',label:'Produkcja PV',unit:'kWh',icon:'⚡',higherWins:true},
+  {key:'consumption',label:'Zużycie',unit:'kWh',icon:'🏠',higherWins:false},
+  {key:'export',label:'Eksport',unit:'kWh',icon:'📤',higherWins:true},
+  {key:'selfConsumption',label:'Autokonsumpcja',unit:'%',icon:'🔄',higherWins:true},
+];
+
+let allData = {};
+let config = {matkoKwp:7.95, sasiadKwp:6.16, normalize:true};
+let currentDate = new Date().toISOString().split('T')[0];
+let currentTab = 'battle';
+
+async function fetchData() {
+  try {
+    const r = await fetch('/api/data');
+    const json = await r.json();
+    allData = json.data || {};
+    if (json.config) config = json.config;
+    render();
+  } catch(e) {
+    console.error('Fetch error:', e);
+    document.getElementById('header-meta').textContent = 'Błąd ładowania danych';
+  }
+}
+
+function render() {
+  document.getElementById('header-meta').innerHTML =
+    `⚡ DEYE ${config.matkoKwp}kWp vs ☀️ Huawei ${config.sasiadKwp}kWp` +
+    (config.normalize ? '<span style="color:rgba(34,197,94,0.6)"> · normalizacja/kWp</span>' : '');
+
+  renderScores();
+  renderDayNav();
+  renderDuel();
+  renderHistory();
+}
+
+function calcStats() {
+  const dates = Object.keys(allData).sort();
+  let ms=0,zs=0,mStreak=0,zStreak=0,lastW=null,curStreak=0;
+
+  dates.forEach(d => {
+    const m=allData[d]?.matko, s=allData[d]?.sasiad;
+    if(!m||!s) return;
+    let mW=0,sW=0;
+    METRICS.forEach(met => {
+      const mV = config.normalize && met.unit!=='%' ? (m[met.key]||0)/config.matkoKwp : (m[met.key]||0);
+      const sV = config.normalize && met.unit!=='%' ? (s[met.key]||0)/config.sasiadKwp : (s[met.key]||0);
+      if(met.higherWins ? mV>sV : mV<sV) mW++;
+      else if(met.higherWins ? sV>mV : sV<mV) sW++;
+    });
+    if(mW>sW) ms+=3; else if(sW>mW) zs+=3; else {ms+=1;zs+=1;}
+    const w = mW>sW?'m':sW>mW?'z':null;
+    if(w===lastW) curStreak++; else {curStreak=1;lastW=w;}
+  });
+
+  if(lastW==='m') mStreak=curStreak;
+  if(lastW==='z') zStreak=curStreak;
+  const total = dates.filter(d => allData[d]?.matko && allData[d]?.sasiad).length;
+  return {ms,zs,mStreak,zStreak,total};
+}
+
+function renderScores() {
+  const s = calcStats();
+  const mLead = s.ms >= s.zs;
+  document.getElementById('scores').innerHTML = `
+    ${scoreCard('Matko','DEYE',config.matkoKwp,'⚡','--matko','--matko-dim',s.ms,s.mStreak,mLead)}
+    ${scoreCard('Żocho','Huawei',config.sasiadKwp,'☀️','--zocho','--zocho-dim',s.zs,s.zStreak,!mLead)}
+  `;
+  document.getElementById('total-info').textContent = `${s.total} dni rozegranych · 3 pkt za wygraną · 1 pkt za remis`;
+}
+
+function scoreCard(name,inv,kwp,emoji,color,colorDim,score,streak,lead) {
+  return `<div class="score-card ${lead?'leader':''}" style="${lead?`background:linear-gradient(135deg,var(${colorDim}),rgba(0,0,0,0.3));border-color:var(${color})33`:''}">`+
+    (lead?'<div class="crown">👑</div>':'')+
+    `<div class="player"><div class="avatar" style="background:var(${colorDim});border:2px solid var(${color})33">${emoji}</div>`+
+    `<div><div class="name">${name}</div><div class="info">${inv} · ${kwp} kWp</div></div></div>`+
+    `<div class="stats"><div class="stat-box"><div class="val" style="color:var(${color})">${score}</div><div class="label">Punkty</div></div>`+
+    `<div class="stat-box"><div class="val" style="color:${streak>2?'#ef4444':'rgba(255,255,255,0.6)'}">${streak}${streak>2?'🔥':''}</div><div class="label">Streak</div></div></div></div>`;
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='battle')||(i===1&&tab==='ranking')));
+  document.getElementById('battle-tab').style.display = tab==='battle'?'':'none';
+  document.getElementById('ranking-tab').style.display = tab==='ranking'?'':'none';
+}
+
+function renderDayNav() {
+  const d = new Date(currentDate+'T12:00:00');
+  document.getElementById('nav-date').textContent = currentDate;
+  document.getElementById('nav-weekday').textContent = d.toLocaleDateString('pl-PL',{weekday:'long'});
+  document.getElementById('nav-next').disabled = currentDate === new Date().toISOString().split('T')[0];
+}
+
+function shiftDay(n) {
+  const d = new Date(currentDate+'T12:00:00');
+  d.setDate(d.getDate()+n);
+  const today = new Date().toISOString().split('T')[0];
+  if(d.toISOString().split('T')[0] <= today) {
+    currentDate = d.toISOString().split('T')[0];
+    renderDayNav();
+    renderDuel();
+  }
+}
+
+function renderDuel() {
+  const day = allData[currentDate];
+  const el = document.getElementById('duel-content');
+  if(!day?.matko || !day?.sasiad) {
+    el.innerHTML = `<div class="empty">Brak danych na ${currentDate}.<br><small>Dane zbierane automatycznie codziennie o 23:55</small></div>`;
+    return;
+  }
+  const m=day.matko, s=day.sasiad;
+  let mW=0,sW=0;
+  let html = '<div class="duel-card">';
+  METRICS.forEach(met => {
+    const mV=m[met.key]||0, sV=s[met.key]||0;
+    const mN=config.normalize&&met.unit!=='%'?mV/config.matkoKwp:mV;
+    const sN=config.normalize&&met.unit!=='%'?sV/config.sasiadKwp:sV;
+    const mWin=met.higherWins?mN>sN:mN<sN;
+    const sWin=met.higherWins?sN>mN:sN<mN;
+    if(mWin) mW++; if(sWin) sW++;
+    const mx=Math.max(mV,sV,0.1);
+    const mPct=Math.min(mV/mx*100,100);
+    const sPct=Math.min(sV/mx*100,100);
+    const diff = Math.abs(mV-sV).toFixed(1);
+    let badge = '';
+    if(mWin) badge=`<span class="badge" style="background:var(--matko-dim);color:var(--matko)">MATKO +${diff}${met.unit}</span>`;
+    else if(sWin) badge=`<span class="badge" style="background:var(--zocho-dim);color:var(--zocho)">ŻOCHO +${diff}${met.unit}</span>`;
+    html += `<div class="metric"><div class="title"><span>${met.icon} ${met.label}</span>${badge}</div><div class="bars">`+
+      `<div class="bar-row right"><span class="bar-val" style="color:var(--matko)">${mV.toFixed(1)} ${met.unit}</span><div class="bar-track"><div class="bar-fill" style="right:0;width:${mPct}%;background:linear-gradient(270deg,var(--matko),transparent)"></div></div></div>`+
+      `<div class="bar-row"><span class="bar-val" style="color:var(--zocho)">${sV.toFixed(1)} ${met.unit}</span><div class="bar-track"><div class="bar-fill" style="left:0;width:${sPct}%;background:linear-gradient(90deg,var(--zocho),transparent)"></div></div></div>`+
+      `</div></div>`;
+  });
+  const winner = mW>sW ? {n:'Matko',e:'⚡',c:'--matko'} : sW>mW ? {n:'Żocho',e:'☀️',c:'--zocho'} : null;
+  html += `<div class="winner-banner">${winner?`🏆 ${winner.e} <span style="color:var(${winner.c})">${winner.n} WYGRYWA ${Math.max(mW,sW)}-${Math.min(mW,sW)}!</span>`:'🤝 <span style="color:var(--dim)">REMIS!</span>'}</div>`;
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderHistory() {
+  const el = document.getElementById('ranking-tab');
+  const dates = Object.keys(allData).sort().reverse().slice(0,30);
+  if(!dates.length) { el.innerHTML='<div class="empty">Brak danych</div>'; return; }
+  let html = '<div class="history"><div class="section-title">📊 Historia (ostatnie 30 dni)</div><table><thead><tr><th>Data</th><th style="color:var(--matko)">⚡ Matko</th><th style="color:var(--zocho)">☀️ Żocho</th><th>Wynik</th></tr></thead><tbody>';
+  dates.forEach(d => {
+    const m=allData[d]?.matko, s=allData[d]?.sasiad;
+    const mP=m?.production||0, sP=s?.production||0;
+    const mN=config.matkoKwp?mP/config.matkoKwp:mP;
+    const sN=config.sasiadKwp?sP/config.sasiadKwp:sP;
+    const w = mN>sN?'m':sN>mN?'z':'t';
+    html += `<tr><td>${d.slice(5)}</td><td style="color:var(--matko);font-weight:700">${mP?mP.toFixed(1):'—'}</td><td style="color:var(--zocho);font-weight:700">${sP?sP.toFixed(1):'—'}</td><td>${w==='t'?'🤝':w==='m'?'<span style="color:var(--matko)">⚡ W</span>':'<span style="color:var(--zocho)">☀️ W</span>'}</td></tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// Init
+fetchData();
+// Auto-refresh every 5 minutes
+setInterval(fetchData, 300000);
+</script>
+</body>
+</html>
