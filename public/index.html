@@ -59,12 +59,12 @@ td{padding:5px;text-align:center;border-bottom:1px solid rgba(255,255,255,.03);c
 <script>
 var D={},MK=7.95,ZK=6.16,cd=new Date().toISOString().split('T')[0];
 async function ld(){try{var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config){MK=j.config.matkoKwp||7.95;ZK=j.config.sasiadKwp||6.16;}re();}catch(e){}}
-function re(){document.getElementById('sub').textContent='DEYE '+MK+'kWp vs Huawei '+ZK+'kWp · produkcja/kWp';sc();nv();du();hi();}
+function re(){document.getElementById('sub').textContent='DEYE '+MK+'kWp vs Huawei '+ZK+'kWp · >0.7: 3pkt · >0.3: 2pkt · <0.3: 1pkt';sc();nv();du();hi();}
 function p(d){return d&&d.matko?d.matko.production||0:0;}
 function z(d){return d&&d.sasiad?d.sasiad.production||0:0;}
 function sc(){var ds=Object.keys(D).sort(),ms=0,zs=0,mk=0,zk=0,lw=null,cs=0;
 ds.forEach(function(d){var mp=p(D[d]),zp=z(D[d]);if(!mp&&!zp)return;var mn=mp/MK,zn=zp/ZK;
-if(mn>zn){ms+=3;}else if(zn>mn){zs+=3;}else{ms++;zs++;}
+var diff=Math.abs(mn-zn);var pts=diff>0.7?3:diff>0.3?2:diff>0?1:0;if(mn>zn){ms+=pts;}else if(zn>mn){zs+=pts;}else{ms++;zs++;}
 var w=mn>zn?'m':zn>mn?'z':null;if(w===lw)cs++;else{cs=1;lw=w;}});
 if(lw==='m')mk=cs;if(lw==='z')zk=cs;var ml=ms>=zs;
 document.getElementById('sc').innerHTML=

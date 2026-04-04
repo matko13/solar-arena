@@ -53,6 +53,8 @@ class handler(BaseHTTPRequestHandler):
             mp, zp = fetch_matko(), fetch_zocho()
             mk, zk = float(env("MATKO_KWP","7.95")), float(env("ZOCHO_KWP","6.16"))
             mn, zn = mp/mk if mk else 0, zp/zk if zk else 0
+            diff = abs(mn - zn)
+            pts = 3 if diff > 0.7 else 2 if diff > 0.3 else 1 if diff > 0 else 0
             w = "Matko" if mn>zn else "Zocho" if zn>mn else "Remis"
             storage = Storage()
             data = storage.load()
