@@ -202,6 +202,43 @@ document.getElementById('fd')?.addEventListener('change',uFE);
 async function handleScreenshot(input) {
   var file = input.files[0];
   if (!file) return;
+  document.getElementById('ocrPreview').style.display = 'block';
+  document.getElementById('ocrStatus').innerHTML = '⚡ Analizowanie screenshota...';
+
+  // Compress image to max 1200px before sending
+  var img = new Image();
+  img.onload = async function() {
+    var canvas = document.createElement('canvas');
+    var maxW = 1200;
+    var scale = Math.min(1, maxW / img.width);
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    var b64 = canvas.toDataURL('image/jpeg', 0.85);
+    document.getElementById('ocrImg').src = b64;
+
+    try {
+      var r = await fetch('/api/ocr', {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({image: b64, media_type: 'image/jpeg'})});
+      var j = await r.json();
+      if (j.ok) {
+        if (j.production > 0) document.getElementById('fp').value = j.production;
+        if (j.consumption > 0) document.getElementById('fc2').value = j.consumption;
+        if (j.export > 0) document.getElementById('fe').value = j.export;
+        document.getElementById('ocrStatus').innerHTML = '✅ Odczytano! Sprawdz wartosci i kliknij Zapisz.';
+      } else {
+        document.getElementById('ocrStatus').innerHTML = '❌ ' + j.error;
+      }
+    } catch(err) {
+      document.getElementById('ocrStatus').innerHTML = '❌ Blad: ' + err;
+    }
+  };
+  img.src = URL.createObjectURL(file);
+}
+// old function replaced
+function _old_handleScreenshot(input) {
+  var file = input.files[0];
+  if (!file) return;
   var reader = new FileReader();
   reader.onload = async function(e) {
     var b64 = e.target.result;
