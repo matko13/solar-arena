@@ -94,48 +94,118 @@ def fetch_fusionsolar_data(target_date):
         client = FusionSolarClient(username, password, huawei_subdomain=subdomain)
         print("FusionSolar: login OK")
 
-        # Get power status (includes today's production)
+        # 1. Get production from PowerStatus (this works reliably)
         try:
             power = client.get_power_status()
-            print(f"FusionSolar power_status: {power}")
             if power:
                 stats["production"] = round(float(getattr(power, 'energy_today_kwh', 0)), 2)
-                if stats["production"] > 0:
-                    stats["selfConsumption"] = 100.0
-                print(f"FusionSolar: production={stats['production']} kWh")
+                print(f"  PowerStatus: production={stats['production']} kWh")
         except Exception as e:
-            print(f"FusionSolar power_status error: {e}")
+            print(f"  PowerStatus error: {e}")
 
-        # Try station KPIs for more detail
+        # 2. Use the authenticated session to get detailed data via REST API
         try:
-            stations = client.get_station_list()
-            print(f"FusionSolar stations: {len(stations) if stations else 0}")
-            if stations:
-                station_code = stations[0].get("stationCode", stations[0].get("dn", ""))
-                print(f"FusionSolar station_code: {station_code}")
+            session = client.session
+            base_url = f"https://{subdomain}.fusionsolar.huawei.com"
 
-                kpi = client.get_station_real_kpi(station_code)
-                print(f"FusionSolar real_kpi raw: {kpi}")
-                if kpi:
-                    k = kpi[0] if isinstance(kpi, list) else kpi
-                    dp = k.get("dataItemMap", k) if isinstance(k, dict) else {}
-                    if dp:
-                        prod = float(dp.get("day_power", dp.get("inverter_power", dp.get("total_power", 0))))
-                        cons = float(dp.get("day_consumption", dp.get("use_power", 0)))
-                        exp = float(dp.get("day_ongrid_power", dp.get("ongrid_power", 0)))
-                        if prod > 0:
-                            stats["production"] = round(prod, 2)
-                        if cons > 0:
-                            stats["consumption"] = round(cons, 2)
-                        if exp > 0:
-                            stats["export"] = round(exp, 2)
-                        if stats["production"] > 0 and stats["export"] >= 0:
-                            stats["selfConsumption"] = round(
-                                (stats["production"] - stats["export"]) / stats["production"] * 100, 1
-                            )
-                        print(f"FusionSolar KPI: {stats}")
+            # Refresh XSRF token
+            xsrf = session.cookies.get("XSRF-TOKEN")
+            if xsrf:
+                session.headers.update({"XSRF-TOKEN": xsrf})
+
+            # Get station code
+            station_code = ""
+            try:
+                r = session.get(f"{base_url}/rest/pvms/web/station/v1/station/station-list",
+                    params={"curPage": 1, "pageSize": 10, "timeZone": 2},
+                    timeout=15)
+                print(f"  station-list status: {r.status_code}")
+                if r.status_code == 200:
+                    data = r.json()
+                    sl = data.get("data", {})
+                    station_list = sl.get("list", []) if isinstance(sl, dict) else (sl if isinstance(sl, list) else [])
+                    if station_list:
+                        station_code = station_list[0].get("stationCode") or station_list[0].get("dn", "")
+                        print(f"  station_code: {station_code}")
+            except Exception as e:
+                print(f"  station-list error: {e}")
+
+            if station_code:
+                collect_time = int(datetime.combine(target_date, datetime.min.time()).timestamp() * 1000)
+
+                # Try multiple REST endpoints for detailed data
+                for endpoint_name, path, method, payload in [
+                    ("energy-balance POST", "/rest/pvms/web/station/v1/overview/energy-balance", "POST",
+                     {"stationDn": station_code, "timeDim": 2, "queryTime": collect_time, "timeZone": 2}),
+                    ("energy-flow POST", "/rest/pvms/web/station/v1/overview/energy-flow", "POST",
+                     {"stationDn": station_code, "timeDim": 2, "queryTime": collect_time, "timeZone": 2}),
+                    ("energy-balance GET", "/rest/pvms/web/station/v1/overview/energy-balance", "GET",
+                     {"stationDn": station_code, "timeDim": 2, "queryTime": collect_time, "timeZone": 2}),
+                    ("station-detail GET", f"/rest/pvms/web/station/v1/station/station-detail", "GET",
+                     {"stationDn": station_code, "timeZone": 2}),
+                ]:
+                    try:
+                        xsrf = session.cookies.get("XSRF-TOKEN")
+                        if xsrf:
+                            session.headers.update({"XSRF-TOKEN": xsrf})
+
+                        if method == "POST":
+                            r = session.post(f"{base_url}{path}", json=payload, timeout=15)
+                        else:
+                            r = session.get(f"{base_url}{path}", params=payload, timeout=15)
+
+                        print(f"  {endpoint_name}: status={r.status_code}, ct={r.headers.get('content-type','')[:30]}")
+
+                        if r.status_code == 200 and "json" in r.headers.get("content-type", ""):
+                            data = r.json()
+                            print(f"  {endpoint_name} data keys: {list(data.get('data', {}).keys()) if isinstance(data.get('data'), dict) else type(data.get('data'))}")
+
+                            d = data.get("data", {})
+                            if isinstance(d, dict) and d:
+                                # Try to extract consumption and export
+                                cons_keys = ["usePower", "use_power", "selfUsePower", "consumePower"]
+                                exp_keys = ["ongridPower", "ongrid_power", "feedinPower", "sellPower"]
+                                prod_keys = ["productPower", "inverterPower", "totalPower"]
+
+                                for key in cons_keys:
+                                    if key in d and float(d[key] or 0) > 0:
+                                        stats["consumption"] = round(float(d[key]), 2)
+                                        print(f"    consumption from {key}: {stats['consumption']}")
+                                        break
+
+                                for key in exp_keys:
+                                    if key in d and float(d[key] or 0) > 0:
+                                        stats["export"] = round(float(d[key]), 2)
+                                        print(f"    export from {key}: {stats['export']}")
+                                        break
+
+                                for key in prod_keys:
+                                    if key in d and float(d[key] or 0) > 0:
+                                        prod_val = round(float(d[key]), 2)
+                                        if prod_val > stats["production"]:
+                                            stats["production"] = prod_val
+                                            print(f"    production from {key}: {stats['production']}")
+                                        break
+
+                                if stats["consumption"] > 0 or stats["export"] > 0:
+                                    print(f"  Got detailed data from {endpoint_name}!")
+                                    break
+                        elif r.status_code == 200:
+                            print(f"  {endpoint_name}: got HTML, not JSON - skipping")
+                    except Exception as e:
+                        print(f"  {endpoint_name} error: {e}")
+
         except Exception as e:
-            print(f"FusionSolar station KPI error: {e}")
+            print(f"  REST API fallback error: {e}")
+
+        # Calculate self-consumption
+        if stats["production"] > 0:
+            if stats["export"] > 0:
+                stats["selfConsumption"] = round(
+                    (stats["production"] - stats["export"]) / stats["production"] * 100, 1
+                )
+            else:
+                stats["selfConsumption"] = 100.0
 
     except ImportError as e:
         print(f"fusion_solar_py import error: {e}")
