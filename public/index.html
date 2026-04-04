@@ -4,268 +4,100 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solar Arena</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0a0a0a;--card:rgba(255,255,255,0.03);--border:rgba(255,255,255,0.06);--text:white;--dim:rgba(255,255,255,0.4);--matko:#22d3ee;--matko-dim:rgba(34,211,238,0.15);--zocho:#f59e0b;--zocho-dim:rgba(245,158,11,0.15);--mono:'JetBrains Mono',monospace}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh}
-.container{max-width:540px;margin:0 auto;padding:0 16px 40px}
-.header{text-align:center;padding:28px 16px 12px;position:relative}
-.header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center top,rgba(34,211,238,0.08),transparent 60%);pointer-events:none}
-.header .sub{font-size:11px;letter-spacing:4px;color:rgba(255,255,255,0.25);font-weight:700;text-transform:uppercase;margin-bottom:4px}
-.header h1{font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--matko),var(--zocho));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px}
-.header .meta{font-size:12px;color:rgba(255,255,255,0.3);margin-top:4px;font-family:var(--mono)}
-.scores{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:16px 0}
-.sc{border-radius:16px;padding:20px 24px;position:relative;overflow:hidden;border:1px solid var(--border);background:var(--card)}
-.sc.ld{border-color:rgba(255,255,255,0.15)}
-.sc .cr{position:absolute;top:8px;right:12px;font-size:28px}
-.sc .pl{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-.sc .av{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
-.sc .nm{font-weight:800;font-size:18px}
-.sc .inf{font-size:11px;color:var(--dim);font-weight:500}
-.sc .st{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.sb{background:rgba(0,0,0,0.25);border-radius:10px;padding:10px 14px;text-align:center}
-.sb .v{font-size:26px;font-weight:900;font-family:var(--mono)}
-.sb .l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
-.tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--card);border-radius:12px;padding:4px}
-.tab{flex:1;padding:10px 0;border-radius:10px;border:none;cursor:pointer;background:transparent;color:rgba(255,255,255,0.35);font-size:13px;font-weight:700;font-family:inherit;transition:all 0.2s}
-.tab.active{background:rgba(255,255,255,0.1);color:white}
-.dn{display:flex;align-items:center;justify-content:center;gap:16px;margin:16px 0}
-.dn button{width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:white;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.dn button:disabled{opacity:0.3}
-.dn .dt{font-size:20px;font-weight:800;font-family:var(--mono);text-align:center}
-.dn .wd{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px}
-.dc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:8px 16px}
-.met{padding:14px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
-.met:last-child{border-bottom:none}
-.met .ti{text-align:center;margin-bottom:10px}
-.met .ti span{font-size:14px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;font-weight:600}
-.badge{margin-left:8px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:700}
-.badge.sk{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.3)}
-.bars{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.br{display:flex;align-items:center;gap:8px}
-.br.ri{flex-direction:row-reverse}
-.bv{font-family:var(--mono);font-size:13px;font-weight:700;min-width:70px}
-.br.ri .bv{text-align:left}
-.br:not(.ri) .bv{text-align:right}
-.bt{flex:1;height:22px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;position:relative}
-.bf{position:absolute;top:0;bottom:0;border-radius:4px;transition:width 0.6s cubic-bezier(0.34,1.56,0.64,1)}
-.wb{text-align:center;padding:16px 0 10px;font-size:18px;font-weight:900}
-.empty{text-align:center;padding:40px;color:rgba(255,255,255,0.3);font-size:14px}
-.ht table{width:100%;border-collapse:collapse;font-size:12px}
-.ht th{padding:8px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);color:var(--dim);font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:1px}
-.ht td{padding:8px 6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);color:rgba(255,255,255,0.6);font-family:var(--mono)}
-.ht .stt{font-size:14px;font-weight:700;color:var(--dim);margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}
-.ti2{text-align:center;font-size:11px;color:rgba(255,255,255,0.25);font-family:var(--mono)}
-.ft{text-align:center;margin-top:24px;font-size:10px;color:rgba(255,255,255,0.15);font-family:var(--mono)}
-.rb{position:fixed;bottom:20px;right:20px;width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);background:rgba(0,0,0,0.8);color:white;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(10px);z-index:100}
-/* Inline edit */
-.editable{cursor:pointer;border-bottom:1px dashed rgba(255,255,255,0.2);padding-bottom:1px}
-.editable:hover{border-bottom-color:rgba(255,255,255,0.5)}
-.inline-input{width:65px;padding:2px 6px;border-radius:4px;border:1px solid var(--matko);background:rgba(0,0,0,0.5);color:white;font-size:13px;font-family:var(--mono);text-align:center}
-.inline-input.zocho-input{border-color:var(--zocho)}
-/* Add tab */
-.fc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin-top:16px}
-.fc h3{font-size:14px;font-weight:700;color:var(--dim);margin-bottom:16px}
-.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-.fr.fu{grid-template-columns:1fr}
-.fl{font-size:11px;color:var(--dim);font-weight:600;display:block;margin-bottom:4px}
-.fi{width:100%;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(0,0,0,0.3);color:white;font-size:14px;font-family:var(--mono);box-sizing:border-box}
-.pb{display:flex;gap:4px;margin-bottom:12px}
-.pb button{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:6px;height:44px}
-.sb2{width:100%;padding:10px;border-radius:10px;border:none;font-size:14px;font-weight:800;cursor:pointer;margin-top:8px}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:700;z-index:200;animation:fio 3s forwards}
-@keyframes fio{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}10%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0}}
-.toast.ok{background:#22c55e;color:#0a0a0a}
-.toast.err{background:#ef4444;color:white}
+:root{--bg:#0a0a0a;--c:rgba(255,255,255,0.03);--b:rgba(255,255,255,0.06);--d:rgba(255,255,255,0.4);--m:#22d3ee;--md:rgba(34,211,238,0.15);--z:#f59e0b;--zd:rgba(245,158,11,0.15);--f:'JetBrains Mono',monospace}
+body{background:var(--bg);color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh}
+.wrap{max-width:520px;margin:0 auto;padding:0 16px 40px}
+h1{text-align:center;padding:28px 0 4px;font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--m),var(--z));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{text-align:center;font-size:11px;color:var(--d);font-family:var(--f);margin-bottom:16px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.card{border-radius:14px;padding:16px;border:1px solid var(--b);background:var(--c);position:relative}
+.card.win{border-color:rgba(255,255,255,0.15)}
+.card .crown{position:absolute;top:6px;right:10px;font-size:24px}
+.card .name{font-weight:800;font-size:16px;margin-bottom:2px}
+.card .info{font-size:10px;color:var(--d)}
+.card .score{font-size:32px;font-weight:900;font-family:var(--f);margin-top:8px}
+.card .slbl{font-size:9px;color:var(--d);text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;gap:4px;margin:12px 0;background:var(--c);border-radius:10px;padding:3px}
+.tab{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;background:0;color:rgba(255,255,255,0.35);font-size:12px;font-weight:700;font-family:inherit}
+.tab.on{background:rgba(255,255,255,0.1);color:#fff}
+.nav{display:flex;align-items:center;justify-content:center;gap:14px;margin:12px 0}
+.nav button{width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;cursor:pointer;font-size:12px}
+.nav button:disabled{opacity:.3}
+.nav .dt{font-size:18px;font-weight:800;font-family:var(--f)}
+.nav .wd{font-size:10px;color:var(--d);text-align:center}
+.duel{background:var(--c);border:1px solid var(--b);border-radius:14px;padding:12px 14px}
+.met{padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.met:last-child{border-bottom:0}
+.met .lbl{text-align:center;font-size:12px;color:var(--d);font-weight:600;margin-bottom:6px}
+.met .badge{font-size:10px;padding:1px 6px;border-radius:10px;font-weight:700;margin-left:6px}
+.bars{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.br{display:flex;align-items:center;gap:6px}
+.br.r{flex-direction:row-reverse}
+.bv{font-family:var(--f);font-size:12px;font-weight:700;min-width:60px}
+.br.r .bv{text-align:left}.br:not(.r) .bv{text-align:right}
+.bt{flex:1;height:18px;background:rgba(255,255,255,0.04);border-radius:3px;overflow:hidden;position:relative}
+.bf{position:absolute;top:0;bottom:0;border-radius:3px;transition:width .5s ease}
+.winner{text-align:center;padding:12px 0 6px;font-size:16px;font-weight:900}
+.empty{text-align:center;padding:30px;color:var(--d);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+th{padding:6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.1);color:var(--d);font-size:9px;text-transform:uppercase;letter-spacing:1px}
+td{padding:6px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.03);color:rgba(255,255,255,0.5);font-family:var(--f)}
+.foot{text-align:center;margin-top:20px;font-size:9px;color:rgba(255,255,255,0.12);font-family:var(--f)}
 </style>
 </head>
 <body>
-<div class="header"><div class="sub">PV Battle Dashboard</div><h1>SOLAR ARENA</h1><div class="meta" id="hm"></div></div>
-<div class="container">
-<div class="scores" id="scores"></div>
-<div class="ti2" id="ti"></div>
+<h1>SOLAR ARENA</h1>
+<div class="wrap">
+<div class="sub" id="sub"></div>
+<div class="row" id="scores"></div>
 <div class="tabs">
-<button class="tab active" onclick="setTab('battle')">&#9876;&#65039; Bitwa</button>
-<button class="tab" onclick="setTab('ranking')">&#127942; Ranking</button>
-<button class="tab" onclick="setTab('add')">&#128221; Dodaj</button>
+<button class="tab on" onclick="tab('b')">Bitwa</button>
+<button class="tab" onclick="tab('r')">Ranking</button>
 </div>
-<div id="t-battle">
-<div class="dn"><button onclick="shiftDay(-1)">&#9664;</button><div><div class="dt" id="nd"></div><div class="wd" id="nw"></div></div><button id="nn" onclick="shiftDay(1)">&#9654;</button></div>
+<div id="vb">
+<div class="nav"><button onclick="go(-1)">&lt;</button><div><div class="dt" id="nd"></div><div class="wd" id="nw"></div></div><button id="nn" onclick="go(1)">&gt;</button></div>
 <div id="duel"></div>
 </div>
-<div id="t-ranking" style="display:none"></div>
-<div id="t-add" style="display:none">
-<div class="fc">
-<h3>&#128221; Reczne wpisywanie danych</h3>
-<div style="font-size:11px;color:rgba(255,255,255,0.25);margin-bottom:12px;text-align:center">Wpisz dane z aplikacji inwertera. Mozesz tez kliknac na 0.0 w zakladce Bitwa.</div>
-<div style="margin-bottom:16px;padding:16px;border:2px dashed rgba(255,255,255,0.1);border-radius:12px;text-align:center;cursor:pointer" onclick="document.getElementById('screenshotInput').click()" id="dropZone"><div style="font-size:24px;margin-bottom:8px">📷</div><div style="font-size:13px;color:rgba(255,255,255,0.4)">Wrzuc screenshot z aplikacji inwertera</div><div style="font-size:11px;color:rgba(255,255,255,0.2);margin-top:4px">Claude Vision odczyta dane automatycznie</div><input type="file" id="screenshotInput" accept="image/*" style="display:none" onchange="handleScreenshot(this)"></div><div id="ocrPreview" style="display:none;margin-bottom:16px"><img id="ocrImg" style="width:100%;border-radius:8px;margin-bottom:8px"><div id="ocrStatus" style="text-align:center;font-size:13px;color:rgba(255,255,255,0.4)"></div></div><div class="pb">
-<button id="bm" onclick="setFP('matko')">&#9889; Matko</button>
-<button id="bz" onclick="setFP('sasiad')">&#9728;&#65039; Zocho</button>
+<div id="vr" style="display:none"></div>
+<div class="foot">Solar Arena v7 &middot; Kiosk API &middot; DEYE vs Huawei</div>
 </div>
-<div class="fr fu"><div><label class="fl">Data (domyslnie wczoraj)</label><input type="date" class="fi" id="fd"></div></div>
-<div class="fr">
-<div><label class="fl">&#9889; Produkcja (kWh)</label><input type="number" step="0.1" class="fi" id="fp" placeholder="0.0"></div>
-<div><label class="fl">&#127968; Zuzycie (kWh)</label><input type="number" step="0.1" class="fi" id="fc2" placeholder="0.0"></div>
-</div>
-<div class="fr">
-<div><label class="fl">&#128228; Eksport (kWh)</label><input type="number" step="0.1" class="fi" id="fe" placeholder="0.0"></div>
-<div><label class="fl">&#128260; Autokonsumpcja</label><input type="text" class="fi" id="fsc" placeholder="auto" disabled style="opacity:0.5"></div>
-</div>
-<button class="sb2" id="fsb" onclick="submitForm()">&#128190; Zapisz</button>
-<div id="fex" style="margin-top:12px"></div>
-</div>
-</div>
-<div class="ft">Solar Arena v3 - Vercel + Upstash - DEYE vs Huawei</div>
-</div>
-<button class="rb" onclick="fetchData()">&#128260;</button>
-<div id="tc"></div>
 <script>
-const M=[
-{key:'production',label:'Produkcja PV',unit:'kWh',icon:'\u26a1',hw:true},
-{key:'consumption',label:'Zuzycie',unit:'kWh',icon:'\ud83c\udfe0',hw:false},
-{key:'export',label:'Eksport',unit:'kWh',icon:'\ud83d\udce4',hw:true},
-{key:'selfConsumption',label:'Autokonsumpcja',unit:'%',icon:'\ud83d\udd04',hw:true}];
-let D={},C={matkoKwp:7.95,sasiadKwp:6.16,normalize:true},cd=new Date().toISOString().split('T')[0],ct='battle',fp='matko';
-const urlMe=new URLSearchParams(location.search).get('me');
-function toast(m,o){const d=document.createElement('div');d.className='toast '+(o?'ok':'err');d.textContent=m;document.getElementById('tc').appendChild(d);setTimeout(()=>d.remove(),3500);}
-async function fetchData(){try{const r=await fetch('/api/data');const j=await r.json();D=j.data||{};if(j.config)C=j.config;render();}catch(e){console.error(e);}}
-function render(){document.getElementById('hm').innerHTML=`\u26a1 DEYE ${C.matkoKwp}kWp vs \u2600\ufe0f Huawei ${C.sasiadKwp}kWp`+(C.normalize?'<span style="color:rgba(34,197,94,0.6)"> \u00b7 normalizacja/kWp</span>':'');rS();rN();rD();rH();uFE();}
-function miss(a,b){return(a===0&&b>0)||(b===0&&a>0);}
-function cS(){const ds=Object.keys(D).sort();let ms=0,zs=0,mK=0,zK=0,lw=null,cs=0;ds.forEach(d=>{const m=D[d]?.matko,s=D[d]?.sasiad;if(!m||!s)return;let mw=0,sw=0;M.forEach(x=>{const mv=m[x.key]||0,sv=s[x.key]||0;if(miss(mv,sv))return;const mn=C.normalize&&x.unit!=='%'?mv/C.matkoKwp:mv,sn=C.normalize&&x.unit!=='%'?sv/C.sasiadKwp:sv;if(x.hw?mn>sn:mn<sn)mw++;else if(x.hw?sn>mn:sn<mn)sw++;});if(mw>sw)ms+=3;else if(sw>mw)zs+=3;else{ms++;zs++;}const w=mw>sw?'m':sw>mw?'z':null;if(w===lw)cs++;else{cs=1;lw=w;}});if(lw==='m')mK=cs;if(lw==='z')zK=cs;return{ms,zs,mK,zK,t:ds.filter(d=>D[d]?.matko&&D[d]?.sasiad).length};}
-function rS(){const s=cS(),ml=s.ms>=s.zs;document.getElementById('scores').innerHTML=sC('Matko','DEYE',C.matkoKwp,'\u26a1','--matko','--matko-dim',s.ms,s.mK,ml)+sC('\u017bocho','Huawei',C.sasiadKwp,'\u2600\ufe0f','--zocho','--zocho-dim',s.zs,s.zK,!ml);document.getElementById('ti').textContent=`${s.t} dni rozegranych \u00b7 3 pkt za wygran\u0105 \u00b7 1 pkt za remis`;}
-function sC(n,i,k,e,c,cd2,sc,sk,ld){return`<div class="sc ${ld?'ld':''}" style="${ld?`background:linear-gradient(135deg,var(${cd2}),rgba(0,0,0,0.3));border-color:var(${c})33`:''}">${ld?'<div class="cr">\ud83d\udc51</div>':''}<div class="pl"><div class="av" style="background:var(${cd2});border:2px solid var(${c})33">${e}</div><div><div class="nm">${n}</div><div class="inf">${i} \u00b7 ${k} kWp</div></div></div><div class="st"><div class="sb"><div class="v" style="color:var(${c})">${sc}</div><div class="l">Punkty</div></div><div class="sb"><div class="v" style="color:${sk>2?'#ef4444':'rgba(255,255,255,0.6)'}">${sk}${sk>2?'\ud83d\udd25':''}</div><div class="l">Streak</div></div></div></div>`;}
-function setTab(t){ct=t;document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',(i===0&&t==='battle')||(i===1&&t==='ranking')||(i===2&&t==='add')));['t-battle','t-ranking','t-add'].forEach((id,i)=>document.getElementById(id).style.display=(['battle','ranking','add'][i]===t)?'':'none');if(t==='add')initForm();}
-function rN(){const d=new Date(cd+'T12:00:00');document.getElementById('nd').textContent=cd;document.getElementById('nw').textContent=d.toLocaleDateString('pl-PL',{weekday:'long'});document.getElementById('nn').disabled=cd===new Date().toISOString().split('T')[0];}
-function shiftDay(n){const d=new Date(cd+'T12:00:00');d.setDate(d.getDate()+n);const t=new Date().toISOString().split('T')[0];if(d.toISOString().split('T')[0]<=t){cd=d.toISOString().split('T')[0];rN();rD();}}
-
-async function saveInline(player,metric,val){
-  const day=D[cd]||{};const existing=day[player]||{production:0,consumption:0,export:0,selfConsumption:0};
-  existing[metric]=parseFloat(val)||0;
-  if(existing.production>0)existing.selfConsumption=existing.export>0?Math.round((existing.production-existing.export)/existing.production*1000)/10:100;
-  try{
-    const r=await fetch('/api/manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player:player,date:cd,production:existing.production,consumption:existing.consumption,export:existing.export})});
-    const j=await r.json();
-    if(j.ok){toast('\u2713 Zapisano!',true);await fetchData();}else toast('Blad: '+j.error,false);
-  }catch(e){toast('Blad: '+e,false);}
-}
-
-function makeVal(player,metric,val,unit,color){
-  const isZero=val===0;
-  const other=player==='matko'?D[cd]?.sasiad:D[cd]?.matko;
-  const otherVal=other?other[metric]||0:0;
-  const isMissing=isZero&&otherVal>0;
-  if(isMissing||isZero){
-    const id=`inp-${player}-${metric}`;
-    return`<span class="bv" style="color:${color}">`+
-      `<span class="editable" onclick="this.style.display='none';this.nextElementSibling.style.display='inline';this.nextElementSibling.querySelector('input').focus()" title="Kliknij aby wpisac">${val.toFixed(1)} ${unit}</span>`+
-      `<span style="display:none"><input class="inline-input ${player==='sasiad'?'zocho-input':''}" type="number" step="0.1" placeholder="${unit}" onkeydown="if(event.key==='Enter'){saveInline('${player}','${metric}',this.value)}" style="width:55px"><button onclick="saveInline('${player}','${metric}',this.previousElementSibling.value)" style="background:none;border:none;color:${color};cursor:pointer;font-size:14px;padding:2px">\u2713</button></span></span>`;
-  }
-  return`<span class="bv" style="color:${color}">${val.toFixed(1)} ${unit}</span>`;
-}
-
-function rD(){
-  const day=D[cd],el=document.getElementById('duel');
-  if(!day||(!day.matko&&!day.sasiad)){el.innerHTML=`<div class="empty">Brak danych na ${cd}.<br><small>Dane zbierane automatycznie o 23:55 lub kliknij &#128221; Dodaj</small></div>`;return;}
-  const m=day.matko||{production:0,consumption:0,export:0,selfConsumption:0};
-  const s=day.sasiad||{production:0,consumption:0,export:0,selfConsumption:0};
-  let mW=0,sW=0,h='<div class="dc">';
-  M.forEach(x=>{
-    const mv=m[x.key]||0,sv=s[x.key]||0;
-    const sk=miss(mv,sv);
-    const mn=C.normalize&&x.unit!=='%'?mv/C.matkoKwp:mv,sn=C.normalize&&x.unit!=='%'?sv/C.sasiadKwp:sv;
-    const mWin=sk?false:(x.hw?mn>sn:mn<sn),sWin=sk?false:(x.hw?sn>mn:sn<mn);
-    if(mWin)mW++;if(sWin)sW++;
-    const mx=Math.max(mv,sv,0.1),mp=Math.min(mv/mx*100,100),sp=Math.min(sv/mx*100,100);
-    const df=Math.abs(mv-sv).toFixed(1);
-    let bg='';
-    if(sk)bg='<span class="badge sk">kliknij 0.0 aby wpisac</span>';
-    else if(mWin)bg=`<span class="badge" style="background:var(--matko-dim);color:var(--matko)">MATKO +${df}${x.unit}</span>`;
-    else if(sWin)bg=`<span class="badge" style="background:var(--zocho-dim);color:var(--zocho)">\u017bOCHO +${df}${x.unit}</span>`;
-    h+=`<div class="met"><div class="ti"><span>${x.icon} ${x.label}</span>${bg}</div><div class="bars">`+
-      `<div class="br ri">${makeVal('matko',x.key,mv,x.unit,'var(--matko)')}<div class="bt"><div class="bf" style="right:0;width:${mp}%;background:linear-gradient(270deg,var(--matko),transparent)"></div></div></div>`+
-      `<div class="br">${makeVal('sasiad',x.key,sv,x.unit,'var(--zocho)')}<div class="bt"><div class="bf" style="left:0;width:${sp}%;background:linear-gradient(90deg,var(--zocho),transparent)"></div></div></div>`+
-      `</div></div>`;
-  });
-  const w=mW>sW?{n:'Matko',e:'\u26a1',c:'--matko'}:sW>mW?{n:'\u017bocho',e:'\u2600\ufe0f',c:'--zocho'}:null;
-  h+=`<div class="wb">${w?`\ud83c\udfc6 ${w.e} <span style="color:var(${w.c})">${w.n} WYGRYWA ${Math.max(mW,sW)}-${Math.min(mW,sW)}!</span>`:'\ud83e\udd1d <span style="color:var(--dim)">REMIS!</span>'}</div></div>`;
-  el.innerHTML=h;
-}
-function rH(){const el=document.getElementById('t-ranking');const ds=Object.keys(D).sort().reverse().slice(0,30);if(!ds.length){el.innerHTML='<div class="empty">Brak danych</div>';return;}let h='<div class="ht"><div class="stt">\ud83d\udcca Historia (ostatnie 30 dni)</div><table><thead><tr><th>Data</th><th style="color:var(--matko)">\u26a1 Matko</th><th style="color:var(--zocho)">\u2600\ufe0f \u017bocho</th><th>Wynik</th></tr></thead><tbody>';ds.forEach(d=>{const m=D[d]?.matko,s=D[d]?.sasiad;const mp=m?.production||0,sp=s?.production||0;const mn=C.matkoKwp?mp/C.matkoKwp:mp,sn=C.sasiadKwp?sp/C.sasiadKwp:sp;const w=mn>sn?'m':sn>mn?'z':'t';h+=`<tr><td>${d.slice(5)}</td><td style="color:var(--matko);font-weight:700">${mp?mp.toFixed(1):'\u2014'}</td><td style="color:var(--zocho);font-weight:700">${sp?sp.toFixed(1):'\u2014'}</td><td>${w==='t'?'\ud83e\udd1d':w==='m'?'<span style="color:var(--matko)">\u26a1W</span>':'<span style="color:var(--zocho)">\u2600\ufe0fW</span>'}</td></tr>`;});h+='</tbody></table></div>';el.innerHTML=h;}
-function initForm(){const y=new Date();y.setDate(y.getDate()-1);document.getElementById('fd').value=y.toISOString().split('T')[0];uFE();}
-function setFP(p){fp=p;document.getElementById('bm').className='pb'+(p==='matko'?' active-matko':' inactive');document.getElementById('bm').style.cssText=p==='matko'?'background:var(--matko);color:#0a0a0a':'background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)';document.getElementById('bz').style.cssText=p==='sasiad'?'background:var(--zocho);color:#0a0a0a':'background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.4)';document.getElementById('fsb').style.background=p==='matko'?'var(--matko)':'var(--zocho)';document.getElementById('fsb').style.color='#0a0a0a';uFE();}
-function uFE(){const dv=document.getElementById('fd')?.value;if(!dv)return;const el=document.getElementById('fex');const day=D[dv];if(!day)return void(el.innerHTML='');let h='';if(day.matko?.production>0)h+=`<div style="padding:6px 10px;border-radius:8px;background:var(--matko-dim);color:var(--matko);font-size:12px;margin-bottom:4px">\u2713 Matko: ${day.matko.production}kWh prod, ${day.matko.consumption}kWh cons, ${day.matko.export}kWh exp</div>`;if(day.sasiad?.production>0)h+=`<div style="padding:6px 10px;border-radius:8px;background:var(--zocho-dim);color:var(--zocho);font-size:12px">\u2713 \u017bocho: ${day.sasiad.production}kWh prod, ${day.sasiad.consumption}kWh cons, ${day.sasiad.export}kWh exp</div>`;el.innerHTML=h;}
-async function submitForm(){const dv=document.getElementById('fd').value,pr=parseFloat(document.getElementById('fp').value)||0,co=parseFloat(document.getElementById('fc2').value)||0,ex=parseFloat(document.getElementById('fe').value)||0;if(!dv){toast('Wybierz date!',false);return;}if(pr===0&&co===0){toast('Wpisz przynajmniej produkcje!',false);return;}try{const r=await fetch('/api/manual',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player:fp,date:dv,production:pr,consumption:co,export:ex})});const j=await r.json();if(j.ok){toast(`\u2713 Zapisano ${fp==='matko'?'Matko':'\u017bocho'} ${dv}`,true);document.getElementById('fp').value='';document.getElementById('fc2').value='';document.getElementById('fe').value='';await fetchData();}else toast('Blad: '+j.error,false);}catch(e){toast('Blad: '+e,false);}}
-document.getElementById('fd')?.addEventListener('change',uFE);
-
-async function handleScreenshot(input) {
-  var file = input.files[0];
-  if (!file) return;
-  document.getElementById('ocrPreview').style.display = 'block';
-  document.getElementById('ocrStatus').innerHTML = '⚡ Analizowanie screenshota...';
-
-  // Compress image to max 1200px before sending
-  var img = new Image();
-  img.onload = async function() {
-    var canvas = document.createElement('canvas');
-    var maxW = 1200;
-    var scale = Math.min(1, maxW / img.width);
-    canvas.width = img.width * scale;
-    canvas.height = img.height * scale;
-    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-    var b64 = canvas.toDataURL('image/jpeg', 0.85);
-    document.getElementById('ocrImg').src = b64;
-
-    try {
-      var r = await fetch('/api/ocr', {method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({image: b64, media_type: 'image/jpeg'})});
-      var j = await r.json();
-      if (j.ok) {
-        if (j.production > 0) document.getElementById('fp').value = j.production;
-        if (j.consumption > 0) document.getElementById('fc2').value = j.consumption;
-        if (j.export > 0) document.getElementById('fe').value = j.export;
-        document.getElementById('ocrStatus').innerHTML = '✅ Odczytano! Sprawdz wartosci i kliknij Zapisz.';
-      } else {
-        document.getElementById('ocrStatus').innerHTML = '❌ ' + j.error;
-      }
-    } catch(err) {
-      document.getElementById('ocrStatus').innerHTML = '❌ Blad: ' + err;
-    }
-  };
-  img.src = URL.createObjectURL(file);
-}
-// old function replaced
-function _old_handleScreenshot(input) {
-  var file = input.files[0];
-  if (!file) return;
-  var reader = new FileReader();
-  reader.onload = async function(e) {
-    var b64 = e.target.result;
-    document.getElementById('ocrPreview').style.display = 'block';
-    document.getElementById('ocrImg').src = b64;
-    document.getElementById('ocrStatus').innerHTML = '⚡ Analizowanie screenshota...';
-    try {
-      var r = await fetch('/api/ocr', {method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({image: b64, media_type: file.type || 'image/png'})});
-      var j = await r.json();
-      if (j.ok) {
-        if (j.production > 0) document.getElementById('fp').value = j.production;
-        if (j.consumption > 0) document.getElementById('fc2').value = j.consumption;
-        if (j.export > 0) document.getElementById('fe').value = j.export;
-        document.getElementById('ocrStatus').innerHTML = '✅ Odczytano! Sprawdz wartosci i kliknij Zapisz.';
-      } else {
-        document.getElementById('ocrStatus').innerHTML = '❌ ' + j.error;
-      }
-    } catch(err) {
-      document.getElementById('ocrStatus').innerHTML = '❌ Blad: ' + err;
-    }
-  };
-  reader.readAsDataURL(file);
-}
-
-fetchData();setInterval(fetchData,300000);
-setFP(urlMe==='zocho'?'sasiad':'matko');
+var D={},C={matkoKwp:7.95,sasiadKwp:6.16},cd=new Date().toISOString().split('T')[0];
+async function load(){try{var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config)C=j.config;render();}catch(e){console.error(e);}}
+function render(){document.getElementById('sub').textContent='DEYE '+C.matkoKwp+'kWp vs Huawei '+C.sasiadKwp+'kWp';scores();nav();duel();hist();}
+function scores(){var ds=Object.keys(D).sort(),ms=0,zs=0;ds.forEach(function(d){var m=D[d]&&D[d].matko,s=D[d]&&D[d].sasiad;if(!m||!s)return;var mn=m.production/C.matkoKwp,sn=s.production/C.sasiadKwp;if(mn>sn)ms+=3;else if(sn>mn)zs+=3;else{ms++;zs++;}});var ml=ms>=zs;document.getElementById('scores').innerHTML=sc('Matko','DEYE',C.matkoKwp,ms,ml,'var(--m)','var(--md)')+sc('Zocho','Huawei',C.sasiadKwp,zs,!ml,'var(--z)','var(--zd)');}
+function sc(n,inv,kwp,pts,w,col,bg){return'<div class="card'+(w?' win':'')+'" style="'+(w?'background:linear-gradient(135deg,'+bg+',rgba(0,0,0,.3));border-color:'+col+'33':'')+'">'+(w?'<div class="crown">👑</div>':'')+'<div class="name">'+n+'</div><div class="info">'+inv+' · '+kwp+' kWp</div><div class="score" style="color:'+col+'">'+pts+'</div><div class="slbl">punkty</div></div>';}
+function tab(t){document.getElementById('vb').style.display=t==='b'?'':'none';document.getElementById('vr').style.display=t==='r'?'':'none';document.querySelectorAll('.tab').forEach(function(b,i){b.className='tab'+((i===0&&t==='b')||(i===1&&t==='r')?' on':'');});}
+function nav(){var d=new Date(cd+'T12:00:00');document.getElementById('nd').textContent=cd;document.getElementById('nw').textContent=d.toLocaleDateString('pl-PL',{weekday:'long'});document.getElementById('nn').disabled=cd===new Date().toISOString().split('T')[0];}
+function go(n){var d=new Date(cd+'T12:00:00');d.setDate(d.getDate()+n);var t=new Date().toISOString().split('T')[0];var nd=d.toISOString().split('T')[0];if(nd<=t){cd=nd;nav();duel();}}
+function duel(){var day=D[cd],el=document.getElementById('duel');if(!day||(!day.matko&&!day.sasiad)){el.innerHTML='<div class="empty">Brak danych na '+cd+'</div>';return;}
+var m=day.matko||{production:0,consumption:0,export:0,selfConsumption:0};var s=day.sasiad||{production:0,consumption:0,export:0,selfConsumption:0};
+var mn=m.production/C.matkoKwp,sn=s.production/C.sasiadKwp;var w=mn>sn?'Matko':sn>mn?'Zocho':'Remis';
+var h='<div class="duel">';
+h+=metric('Produkcja PV','kWh',m.production,s.production,true);
+if(m.consumption>0||s.consumption>0)h+=metric('Zuzycie','kWh',m.consumption,s.consumption,false);
+if(m.export>0||s.export>0)h+=metric('Eksport','kWh',m.export,s.export,true);
+h+=metric('Produkcja/kWp','kWh/kWp',mn,sn,true);
+h+='<div class="winner" style="color:'+(w==='Matko'?'var(--m)':w==='Zocho'?'var(--z)':'var(--d)')+'">🏆 '+w+(w!=='Remis'?' WYGRYWA!':'')+'</div></div>';
+el.innerHTML=h;}
+function metric(label,unit,mv,sv,hw){var mx=Math.max(mv,sv,0.01);var mp=Math.min(mv/mx*100,100);var sp=Math.min(sv/mx*100,100);
+var mw=hw?mv>sv:mv<sv;var sw=hw?sv>mv:sv<mv;var diff=Math.abs(mv-sv).toFixed(1);
+var badge='';if(mw)badge='<span class="badge" style="background:var(--md);color:var(--m)">+'+diff+'</span>';
+else if(sw)badge='<span class="badge" style="background:var(--zd);color:var(--z)">+'+diff+'</span>';
+return'<div class="met"><div class="lbl">'+label+badge+'</div><div class="bars">'+
+'<div class="br r"><span class="bv" style="color:var(--m)">'+mv.toFixed(1)+' '+unit+'</span><div class="bt"><div class="bf" style="right:0;width:'+mp+'%;background:linear-gradient(270deg,var(--m),transparent)"></div></div></div>'+
+'<div class="br"><span class="bv" style="color:var(--z)">'+sv.toFixed(1)+' '+unit+'</span><div class="bt"><div class="bf" style="left:0;width:'+sp+'%;background:linear-gradient(90deg,var(--z),transparent)"></div></div></div></div></div>';}
+function hist(){var el=document.getElementById('vr');var ds=Object.keys(D).sort().reverse().slice(0,30);if(!ds.length){el.innerHTML='<div class="empty">Brak danych</div>';return;}
+var h='<table><thead><tr><th>Data</th><th style="color:var(--m)">Matko</th><th style="color:var(--z)">Zocho</th><th>kWh/kWp</th><th></th></tr></thead><tbody>';
+ds.forEach(function(d){var m=D[d]&&D[d].matko,s=D[d]&&D[d].sasiad;var mp=m?m.production:0,sp=s?s.production:0;
+var mn=C.matkoKwp?mp/C.matkoKwp:0,sn=C.sasiadKwp?sp/C.sasiadKwp:0;
+var w=mn>sn?'⚡':sn>mn?'☀️':'🤝';
+h+='<tr><td>'+d.slice(5)+'</td><td style="color:var(--m)">'+mp.toFixed(1)+'</td><td style="color:var(--z)">'+sp.toFixed(1)+'</td><td>'+mn.toFixed(2)+' vs '+sn.toFixed(2)+'</td><td>'+w+'</td></tr>';});
+h+='</tbody></table>';el.innerHTML=h;}
+load();setInterval(load,300000);
 </script>
 </body>
 </html>
