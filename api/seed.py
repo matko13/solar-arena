@@ -1,7 +1,5 @@
-"""One-time seed endpoint. GET /api/seed to restore 2026-04-04 data"""
 from http.server import BaseHTTPRequestHandler
 import json, os, requests
-
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         url = os.environ.get("KV_REST_API_URL")
@@ -13,4 +11,4 @@ class handler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps({"ok": True, "dates": sorted(data.keys()), "data": data}).encode())
+        self.wfile.write(json.dumps({"ok": True, "dates": sorted(data.keys())}).encode())
