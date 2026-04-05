@@ -58,6 +58,7 @@ class handler(BaseHTTPRequestHandler):
             w = "Matko" if mn>zn else "Zocho" if zn>mn else "Remis"
             storage = Storage()
             data = storage.load()
+            print(f'Loaded {len(data)} existing dates')
             data[dk] = {"matko": {"production": mp}, "sasiad": {"production": zp}}
             storage.save(data)
             self.send_response(200)
