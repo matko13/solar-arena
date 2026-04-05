@@ -1,4 +1,4 @@
-"""Solar Arena v7 - Production only, Kiosk API"""
+"""Solar Arena v8 - Kiosk API for Zocho, HA for Matko"""
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 from datetime import date
@@ -38,7 +38,7 @@ def fetch_zocho():
         data_str = r.json().get("data", "{}")
         data = json.loads(data_str.replace("&quot;", '"')) if isinstance(data_str, str) else data_str
         prod = round(float(data.get("realKpi", {}).get("dailyEnergy", 0)), 2)
-        print(f"Zocho: {prod} kWh")
+        print(f"Zocho: {prod} kWh (kiosk)")
         return prod
     except Exception as e:
         print(f"Zocho error: {e}"); return 0.0
@@ -50,21 +50,21 @@ class handler(BaseHTTPRequestHandler):
             d = q.get("date", [None])[0]
             dk = d if d else date.today().isoformat()
             print(f"=== {dk} ===")
-            mp, zp = fetch_matko(), fetch_zocho()
+            m, z = fetch_matko(), fetch_zocho()
             mk, zk = float(env("MATKO_KWP","7.95")), float(env("ZOCHO_KWP","6.16"))
-            mn, zn = mp/mk if mk else 0, zp/zk if zk else 0
+            mn, zn = m/mk if mk else 0, z/zk if zk else 0
             diff = abs(mn - zn)
             pts = 3 if diff > 0.7 else 2 if diff > 0.3 else 1 if diff > 0 else 0
-            w = "Matko" if mn>zn else "Zocho" if zn>mn else "Remis"
+            w = "Matko" if mn > zn else "Zocho" if zn > mn else "Remis"
             storage = Storage()
             data = storage.load()
-            print(f'Loaded {len(data)} existing dates')
-            data[dk] = {"matko": {"production": mp}, "sasiad": {"production": zp}}
+            print(f"Loaded {len(data)} existing dates")
+            data[dk] = {"matko": {"production": m}, "sasiad": {"production": z}}
             storage.save(data)
             self.send_response(200)
             self.send_header("Content-type","application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"ok":True,"date":dk,"matko":mp,"zocho":zp,"matko_kwp":round(mn,2),"zocho_kwp":round(zn,2),"winner":w,"days":len(data)}).encode())
+            self.wfile.write(json.dumps({"ok":True,"date":dk,"matko":m,"zocho":z,"matko_kwp":round(mn,2),"zocho_kwp":round(zn,2),"diff":round(diff,2),"pts":pts,"winner":w,"days":len(data)}).encode())
         except Exception as e:
             self.send_response(500)
             self.send_header("Content-type","application/json")
