@@ -80,7 +80,7 @@ td{padding:7px 5px;text-align:center;border-bottom:1px solid rgba(255,255,255,.0
 </div>
 <script>
 var D={},MK=7.95,ZK=6.16,cd=new Date().toISOString().split('T')[0];
-async function ld(){try{var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config){MK=j.config.matkoKwp||7.95;ZK=j.config.sasiadKwp||6.16;}re();}catch(e){document.getElementById('hm').textContent='Blad ladowania';}}
+async function ld(){try{await fetch('/api/collect');var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config){MK=j.config.matkoKwp||7.95;ZK=j.config.sasiadKwp||6.16;}re();}catch(e){document.getElementById('hm').textContent='Blad ladowania';}}
 function re(){document.getElementById('hm').innerHTML='&#9889; DEYE '+MK+'kWp vs &#9728;&#65039; Huawei '+ZK+'kWp <span style="color:rgba(34,197,94,.6)">&middot; produkcja/kWp</span>';sc();nv();du();hi();}
 function mp(d){return d&&d.matko?d.matko.production||0:0;}
 function zp(d){return d&&d.sasiad?d.sasiad.production||0:0;}
