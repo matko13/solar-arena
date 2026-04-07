@@ -1,5 +1,6 @@
-"""Seed historical data using per-day keys"""
+"""Seed data. GET /api/seed?dates=2026-04-04:23.1:18.96,2026-04-05:X:Y"""
 from http.server import BaseHTTPRequestHandler
+from urllib.parse import urlparse, parse_qs
 import json, os, requests
 
 def redis_cmd(*args):
@@ -11,9 +12,17 @@ def redis_cmd(*args):
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        redis_cmd("SET", "sa:2026-04-04", json.dumps({"matko": {"production": 23.1}, "sasiad": {"production": 18.96}}))
+        q = parse_qs(urlparse(self.path).query)
+        dates_str = q.get("dates", ["2026-04-04:23.1:18.96"])[0]
+        results = {}
+        for entry in dates_str.split(","):
+            parts = entry.split(":")
+            if len(parts) == 3:
+                dt, matko, zocho = parts[0], float(parts[1]), float(parts[2])
+                redis_cmd("SET", f"sa:{dt}", json.dumps({"matko": {"production": matko}, "sasiad": {"production": zocho}}))
+                results[dt] = {"matko": matko, "zocho": zocho}
         keys = redis_cmd("KEYS", "sa:*") or []
         self.send_response(200)
-        self.send_header("Content-type","application/json")
+        self.send_header("Content-type", "application/json")
         self.end_headers()
-        self.wfile.write(json.dumps({"ok": True, "keys": sorted(keys)}).encode())
+        self.wfile.write(json.dumps({"ok": True, "seeded": results, "all_keys": sorted(keys)}).encode())
