@@ -19,14 +19,7 @@ class handler(BaseHTTPRequestHandler):
                 if val:
                     dt = key.replace("sa:", "")
                     data[dt] = json.loads(val)
-            response = {
-                "data": data,
-                "config": {
-                    "matkoKwp": float(os.environ.get("MATKO_KWP", "7.95")),
-                    "sasiadKwp": float(os.environ.get("ZOCHO_KWP", "6.16")),
-                },
-                "totalDays": len(data),
-            }
+            response = {"data": data, "config": {"matkoKwp": float(os.environ.get("MATKO_KWP", "7.95")), "sasiadKwp": float(os.environ.get("ZOCHO_KWP", "6.16"))}, "totalDays": len(data)}
             self.send_response(200)
             self.send_header("Content-type", "application/json")
             self.send_header("Access-Control-Allow-Origin", "*")

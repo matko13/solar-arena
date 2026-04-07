@@ -42,33 +42,25 @@ class handler(BaseHTTPRequestHandler):
             existing_raw = redis_cmd("GET", f"sa:{dk}")
             existing = json.loads(existing_raw) if existing_raw else {}
             old_m = existing.get("matko", {}).get("production", 0)
-            old_z = existi
-cd ~/Downloads/solar-arena && cat > api/seed.py << 'EOF'
-"""Seed data. GET /api/seed?dates=2026-04-04:23.1:18.96,2026-04-05:X:Y"""
-from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
-import json, os, requests
-
-def redis_cmd(*args):
-    url = os.environ.get("KV_REST_API_URL")
-    token = os.environ.get("KV_REST_API_TOKEN")
-    r = requests.post(url, headers={"Authorization": f"Bearer {token}"}, json=list(args), timeout=10)
-    r.raise_for_status()
-    return r.json().get("result")
-
-class handler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        q = parse_qs(urlparse(self.path).query)
-        dates_str = q.get("dates", ["2026-04-04:23.1:18.96"])[0]
-        results = {}
-        for entry in dates_str.split(","):
-            parts = entry.split(":")
-            if len(parts) == 3:
-                dt, matko, zocho = parts[0], float(parts[1]), float(parts[2])
-                redis_cmd("SET", f"sa:{dt}", json.dumps({"matko": {"production": matko}, "sasiad": {"production": zocho}}))
-                results[dt] = {"matko": matko, "zocho": zocho}
-        keys = redis_cmd("KEYS", "sa:*") or []
-        self.send_response(200)
-        self.send_header("Content-type", "application/json")
-        self.end_headers()
-        self.wfile.write(json.dumps({"ok": True, "seeded": results, "all_keys": sorted(keys)}).encode())
+            old_z = existing.get("sasiad", {}).get("production", 0)
+            if m == 0 and old_m > 0:
+                m = old_m
+                print(f"  Keeping Matko={m}")
+            if z == 0 and old_z > 0:
+                z = old_z
+                print(f"  Keeping Zocho={z}")
+            redis_cmd("SET", f"sa:{dk}", json.dumps({"matko": {"production": m}, "sasiad": {"production": z}}))
+            mk, zk = float(env("MATKO_KWP","7.95")), float(env("ZOCHO_KWP","6.16"))
+            mn, zn = m/mk if mk else 0, z/zk if zk else 0
+            diff = abs(mn-zn)
+            pts = 3 if diff>0.7 else 2 if diff>0.3 else 1 if diff>0 else 0
+            w = "Matko" if mn>zn else "Zocho" if zn>mn else "Remis"
+            self.send_response(200)
+            self.send_header("Content-type","application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok":True,"date":dk,"matko":m,"zocho":z,"mkwp":round(mn,2),"zkwp":round(zn,2),"pts":pts,"winner":w}).encode())
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-type","application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok":False,"error":str(e)}).encode())

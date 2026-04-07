@@ -1,4 +1,4 @@
-"""Seed data. GET /api/seed?dates=2026-04-04:23.1:18.96,2026-04-05:X:Y"""
+"""Seed data. GET /api/seed?dates=2026-04-04:23.1:18.96,2026-04-05:24.17:38.57"""
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import json, os, requests
