@@ -16,18 +16,18 @@
 --tbl-row:rgba(255,255,255,.03);--tbl-txt:rgba(255,255,255,.5);--ld-brd:rgba(255,255,255,.15);
 --hdr-glow:rgba(34,211,238,.08);--ld-overlay:rgba(0,0,0,.3);--streak-dim:rgba(255,255,255,.6);
 --m:#22d3ee;--md:rgba(34,211,238,.15);--z:#f59e0b;--zd:rgba(245,158,11,.15);
---mono:'JetBrains Mono',monospace;
+--accent-ok:rgba(34,197,94,.65);--mono:'JetBrains Mono',monospace;
 color-scheme:dark;
 }
 :root[data-theme="light"]{
---bg:#f4f6f8;--text:#0f172a;--card:rgba(15,23,42,.04);--brd:rgba(15,23,42,.1);
---dim:rgba(15,23,42,.55);--faint:rgba(15,23,42,.4);--muted:rgba(15,23,42,.5);
---subtle:rgba(15,23,42,.35);--ghost:rgba(15,23,42,.2);--track:rgba(15,23,42,.08);
---panel:rgba(15,23,42,.06);--tab-on:rgba(15,23,42,.08);--btn-bg:rgba(15,23,42,.04);
---btn-brd:rgba(15,23,42,.12);--met-brd:rgba(15,23,42,.08);--tbl-brd:rgba(15,23,42,.12);
---tbl-row:rgba(15,23,42,.05);--tbl-txt:rgba(15,23,42,.65);--ld-brd:rgba(15,23,42,.2);
---hdr-glow:rgba(34,211,238,.12);--ld-overlay:rgba(255,255,255,.5);--streak-dim:rgba(15,23,42,.45);
---md:rgba(34,211,238,.2);--zd:rgba(245,158,11,.2);
+--bg:#f4f6f8;--text:#0f172a;--card:rgba(15,23,42,.05);--brd:rgba(15,23,42,.14);
+--dim:#475569;--faint:#64748b;--muted:#334155;--subtle:#475569;--ghost:#64748b;
+--track:rgba(15,23,42,.1);--panel:rgba(15,23,42,.08);--tab-on:rgba(15,23,42,.1);
+--btn-bg:rgba(15,23,42,.05);--btn-brd:rgba(15,23,42,.18);--met-brd:rgba(15,23,42,.1);
+--tbl-brd:rgba(15,23,42,.16);--tbl-row:rgba(15,23,42,.07);--tbl-txt:#334155;
+--ld-brd:rgba(15,23,42,.28);--hdr-glow:rgba(34,211,238,.14);--ld-overlay:rgba(255,255,255,.55);
+--streak-dim:#475569;--m:#0891b2;--z:#b45309;
+--md:rgba(8,145,178,.18);--zd:rgba(180,83,9,.18);--accent-ok:#15803d;
 color-scheme:light;
 }
 body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;transition:background .35s,color .35s}
@@ -78,6 +78,13 @@ table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
 th{padding:7px 5px;text-align:center;border-bottom:1px solid var(--tbl-brd);color:var(--dim);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:1px}
 td{padding:7px 5px;text-align:center;border-bottom:1px solid var(--tbl-row);color:var(--tbl-txt);font-family:var(--mono)}
 .foot{text-align:center;margin-top:20px;font-size:9px;color:var(--ghost);font-family:var(--mono)}
+.loader{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:var(--bg);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .25s,visibility .25s}
+.loader.on{opacity:1;visibility:visible;pointer-events:auto}
+.loader-spin{width:44px;height:44px;border-radius:50%;border:3px solid var(--track);border-top-color:var(--m);animation:spin .8s linear infinite}
+.loader-txt{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.3px}
+.loader-sub{font-size:11px;color:var(--dim);font-family:var(--mono)}
+@keyframes spin{to{transform:rotate(360deg)}}
+body.ld-on .wrap,body.ld-on .scores,body.ld-on .info2,body.ld-on .tabs,body.ld-on #vb,body.ld-on #vr{visibility:hidden}
 </style>
 <script>
 (function(){
@@ -89,7 +96,12 @@ setInterval(applyTheme,60000);
 })();
 </script>
 </head>
-<body>
+<body class="ld-on">
+<div id="loader" class="loader on" aria-live="polite" aria-busy="true">
+<div class="loader-spin" role="status" aria-label="Ładowanie"></div>
+<div class="loader-txt">Ładowanie Solar Arena</div>
+<div class="loader-sub" id="loaderSub">Pobieranie danych PV…</div>
+</div>
 <div class="hdr">
 <div class="top">PV Battle Dashboard</div>
 <h1>SOLAR ARENA</h1>
@@ -110,9 +122,11 @@ setInterval(applyTheme,60000);
 <div class="foot">Solar Arena v8 &middot; DEYE vs Huawei &middot; Kiosk API</div>
 </div>
 <script>
-var D={},MK=7.95,ZK=6.16,cd=new Date().toISOString().split('T')[0];
-async function ld(){try{await fetch('/api/collect');var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config){MK=j.config.matkoKwp||7.95;ZK=j.config.sasiadKwp||6.16;}re();}catch(e){document.getElementById('hm').textContent='Blad ladowania';}}
-function re(){document.getElementById('hm').innerHTML='&#9889; DEYE '+MK+'kWp vs &#9728;&#65039; Huawei '+ZK+'kWp <span style="color:rgba(34,197,94,.6)">&middot; produkcja/kWp</span>';sc();nv();du();hi();}
+var D={},MK=7.95,ZK=6.16,cd=new Date().toISOString().split('T')[0],busy=false;
+function showLd(msg){document.body.classList.add('ld-on');var el=document.getElementById('loader');el.classList.add('on');el.setAttribute('aria-busy','true');if(msg)document.getElementById('loaderSub').textContent=msg;}
+function hideLd(){document.body.classList.remove('ld-on');var el=document.getElementById('loader');el.classList.remove('on');el.setAttribute('aria-busy','false');}
+async function ld(silent){if(busy)return;busy=true;if(!silent)showLd('Synchronizacja i pobieranie danych…');try{await fetch('/api/collect');if(!silent)document.getElementById('loaderSub').textContent='Ładowanie historii…';var r=await fetch('/api/data');var j=await r.json();D=j.data||{};if(j.config){MK=j.config.matkoKwp||7.95;ZK=j.config.sasiadKwp||6.16;}re();}catch(e){document.getElementById('hm').textContent='Błąd ładowania danych';}finally{busy=false;if(!silent)hideLd();}}
+function re(){document.getElementById('hm').innerHTML='&#9889; DEYE '+MK+'kWp vs &#9728;&#65039; Huawei '+ZK+'kWp <span style="color:var(--accent-ok)">&middot; produkcja/kWp</span>';sc();nv();du();hi();}
 function mp(d){return d&&d.matko?d.matko.production||0:0;}
 function zp(d){return d&&d.sasiad?d.sasiad.production||0:0;}
 function pts(diff){return diff>0.7?3:diff>0.3?2:diff>0?1:0;}
@@ -162,7 +176,7 @@ ds.forEach(function(d){var m=mp(D[d]),z=zp(D[d]),mn=m/MK,zn=z/ZK,df=Math.abs(mn-
 var wi=mn>zn,zi=zn>mn;
 h+='<tr><td>'+d.slice(5)+'</td><td style="color:var(--m)">'+m.toFixed(1)+'</td><td style="color:var(--z)">'+z.toFixed(1)+'</td><td>'+mn.toFixed(2)+' vs '+zn.toFixed(2)+'</td><td>'+(wi?'\u26a1+'+p:zi?'\u2600\ufe0f+'+p:'\uD83E\uDD1D')+'</td></tr>';});
 h+='</tbody></table>';el.innerHTML=h;}
-ld();setInterval(ld,300000);
+ld();setInterval(function(){ld(true);},300000);
 </script>
 </body>
 </html>
