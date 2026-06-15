@@ -95,6 +95,7 @@ class handler(BaseHTTPRequestHandler):
             q = parse_qs(urlparse(self.path).query)
             auto = q.get("auto", ["false"])[0].lower() in ("1", "true", "yes")
             dry_run = q.get("dry_run", ["false"])[0].lower() in ("1", "true", "yes")
+            force = q.get("force", ["false"])[0].lower() in ("1", "true", "yes")
             dates = q.get("dates", [""])[0]
 
             if auto:
@@ -111,7 +112,7 @@ class handler(BaseHTTPRequestHandler):
                 old_matko = existing.get("matko", {}).get("production", 0) or 0
                 zocho = existing.get("sasiad", {}).get("production", 0) or 0
 
-                if old_matko > 0:
+                if old_matko > 0 and not force:
                     results.append({"date": day_key, "status": "skipped", "reason": "already_has_data", "matko": old_matko})
                     continue
 
