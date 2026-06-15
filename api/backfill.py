@@ -1,7 +1,7 @@
 """Solar Arena - backfill missing Matko days from Home Assistant history."""
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs, quote
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import json
 import os
@@ -22,6 +22,10 @@ def redis_cmd(*args):
     return r.json().get("result")
 
 
+def ha_iso(dt):
+    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
+
+
 def fetch_matko_history(day_key):
     """Return end-of-day production for a past date from HA history."""
     sensor = env("HA_SENSOR_PRODUCTION", "sensor.inverter_today_production")
@@ -34,14 +38,17 @@ def fetch_matko_history(day_key):
     start = day.replace(hour=0, minute=0, second=0, microsecond=0)
     end = day.replace(hour=23, minute=59, second=59, microsecond=0)
 
-    start_q = quote(start.isoformat(), safe="")
-    end_q = quote(end.isoformat(), safe="")
+    start_q = quote(ha_iso(start), safe="")
+    end_q = quote(ha_iso(end), safe="")
     url = (
         f"{ha_url}/api/history/period/{start_q}"
         f"?end_time={end_q}&minimal_response&filter_entity_id={sensor}"
     )
     r = requests.get(url, headers={"Authorization": f"Bearer {ha_token}"}, timeout=20)
-    r.raise_for_status()
+    if not r.ok:
+        detail = r.text.strip()[:300]
+        raise ValueError(f"HA history {r.status_code}: {detail}")
+
     history = r.json()
     if not history or not history[0]:
         return None
