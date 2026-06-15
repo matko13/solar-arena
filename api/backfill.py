@@ -1,6 +1,6 @@
 """Solar Arena - backfill missing Matko days from Home Assistant history."""
 from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 import json
@@ -34,9 +34,11 @@ def fetch_matko_history(day_key):
     start = day.replace(hour=0, minute=0, second=0, microsecond=0)
     end = day.replace(hour=23, minute=59, second=59, microsecond=0)
 
+    start_q = quote(start.isoformat(), safe="")
+    end_q = quote(end.isoformat(), safe="")
     url = (
-        f"{ha_url}/api/history/period/{start.isoformat()}"
-        f"?end_time={end.isoformat()}&minimal_response&filter_entity_id={sensor}"
+        f"{ha_url}/api/history/period/{start_q}"
+        f"?end_time={end_q}&minimal_response&filter_entity_id={sensor}"
     )
     r = requests.get(url, headers={"Authorization": f"Bearer {ha_token}"}, timeout=20)
     r.raise_for_status()
